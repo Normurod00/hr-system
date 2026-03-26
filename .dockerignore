@@ -12,5 +12,6 @@ tests
 .osp
 temp
 docker
+!docker/php/supervisord.conf
 *.md
 !README.md
