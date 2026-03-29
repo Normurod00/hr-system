@@ -37,6 +37,6 @@ class RegisterController extends Controller
         Auth::login($user);
 
         return redirect()->route('vacant.index')
-            ->with('success', 'Регистрация успешна! Добро пожаловать в BRB Careers.');
+            ->with('success', 'Регистрация успешна! Добро пожаловать!');
     }
 }

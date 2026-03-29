@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Работа в BRB Bank — Вакансии')
+@section('title', 'Вакансии — ' . config('app.name'))
 
 @section('content')
     @push('styles')
@@ -825,7 +825,7 @@
                     </div>
 
                     <h1 class="hero-title">
-                        Найдите работу<br>мечты в <span>BRB Bank</span>
+                        Найдите работу<br>мечты с <span>{{ config('app.name') }}</span>
                     </h1>
 
                     <p class="hero-subtitle">
@@ -905,7 +905,7 @@
                     <i class="bi bi-award"></i>
                     Преимущества
                 </div>
-                <h2 class="section-title">Почему выбирают BRB Bank</h2>
+                <h2 class="section-title">Почему выбирают нас</h2>
                 <p class="section-subtitle">
                     Мы создаём комфортные условия для работы и развития каждого сотрудника
                 </p>
@@ -1023,7 +1023,7 @@
 
                         <div class="vacancy-company">
                             <i class="bi bi-building"></i>
-                            {{ $vacancy->department ?? 'BRB Bank' }}
+                            {{ $vacancy->department ?? config('app.name') }}
                         </div>
 
                         <div class="vacancy-meta">
@@ -1156,7 +1156,7 @@
                 <div class="cta-icon">
                     <i class="bi bi-rocket-takeoff"></i>
                 </div>
-                <h2 class="cta-title">Готовы начать карьеру в BRB Bank?</h2>
+                <h2 class="cta-title">Готовы начать карьеру с нами?</h2>
                 <p class="cta-subtitle">
                     Создайте резюме прямо сейчас и откликнитесь на интересующие вакансии.
                     Наши HR-специалисты свяжутся с вами в ближайшее время.

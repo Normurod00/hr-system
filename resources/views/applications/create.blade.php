@@ -661,7 +661,7 @@
                     <div class="vacancy-preview">
                         <div class="vacancy-preview-title">{{ $vacancy->title }}</div>
                         <div class="vacancy-preview-meta">
-                            <span><i class="bi bi-building"></i> BRB Bank</span>
+                            <span><i class="bi bi-building"></i> {{ config('app.name') }}</span>
                             @if($vacancy->location)
                                 <span><i class="bi bi-geo-alt"></i> {{ $vacancy->location }}</span>
                             @endif

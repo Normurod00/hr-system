@@ -36,7 +36,7 @@ class EmployeeAuthController extends Controller
             $request->session()->regenerateToken();
 
             return redirect()->route('login')->withErrors([
-                'email' => 'Доступ только для сотрудников BRB.',
+                'email' => 'Доступ только для сотрудников компании.',
             ]);
         }
 

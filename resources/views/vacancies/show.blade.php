@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $vacancy->title . ' — BRB Bank HR')
+@section('title', $vacancy->title . ' — ' . config('app.name'))
 
 @section('content')
     @push('styles')
@@ -377,7 +377,7 @@
             @endif
 
             <div class="vacancy-meta-header">
-                <span><i class="bi bi-building"></i> BRB Bank</span>
+                <span><i class="bi bi-building"></i> {{ config('app.name') }}</span>
                 @if($vacancy->location || $vacancy->city)
                     <span><i class="bi bi-geo-alt"></i> {{ $vacancy->location ?? $vacancy->city }}</span>
                 @endif
@@ -516,9 +516,9 @@
                     <!-- Company Card -->
                     <div class="company-card">
                         <div class="company-header">
-                            <div class="company-logo">BRB</div>
+                            <div class="company-logo">HR</div>
                             <div class="company-info">
-                                <h4>BRB Bank</h4>
+                                <h4>{{ config('app.name') }}</h4>
                                 <div class="company-verified">
                                     <i class="bi bi-patch-check-fill"></i>
                                     Проверенный работодатель

@@ -80,7 +80,7 @@
     <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #E5E7EB; text-align: center; display: flex; flex-direction: column; gap: 10px;">
         <p style="font-size: 13px; color: #9CA3AF; margin: 0 0 4px 0;">
             <i class="bi bi-building me-1"></i>
-            Доступ только для сотрудников BRB
+            Доступ только для сотрудников
         </p>
         <a href="{{ route('candidate.login') }}" style="font-size: 13px; color: #6B7280; text-decoration: none;">
             <i class="bi bi-person me-1"></i>

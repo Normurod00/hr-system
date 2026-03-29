@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Вакансии') — BRB Bank HR</title>
+    <title>@yield('title', 'Вакансии') — {{ config('app.name') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +16,7 @@
 
     <style>
         :root {
-            /* Primary - BRB Red */
+            /* Primary */
             --brb-primary: #D6001C;
             --brb-primary-dark: #B80018;
             --brb-primary-light: #FFE8EB;
@@ -805,8 +805,7 @@
         <div class="header-container">
             <div class="header-left">
                 <a href="{{ url('/') }}" class="site-logo">
-                    <span class="logo-brb">BRB</span>Bank
-                    <span class="logo-hr">HR</span>
+                    <span class="logo-hr">HR</span> Robot
                 </a>
 
                 <nav class="header-nav">
@@ -932,21 +931,19 @@
             <div class="footer-grid">
                 <div>
                     <div class="footer-brand">
-                        <span class="logo-brb">BRB</span>Bank
-                        <span class="logo-hr">HR</span>
+                        <span class="logo-hr">HR</span> Robot
                     </div>
                     <p class="footer-desc">
-                        Присоединяйтесь к команде одного из ведущих банков Узбекистана.
-                        Мы создаём возможности для профессионального роста и развития каждого сотрудника.
+                        Присоединяйтесь к нашей команде. Мы создаём возможности для профессионального роста.
                     </p>
                     <div class="footer-socials">
-                        <a href="https://t.me/brb_uz" class="footer-social-link" target="_blank">
+                        <a href="#" class="footer-social-link" target="_blank">
                             <i class="bi bi-telegram"></i>
                         </a>
-                        <a href="https://instagram.com/brb.uz" class="footer-social-link" target="_blank">
+                        <a href="#" class="footer-social-link" target="_blank">
                             <i class="bi bi-instagram"></i>
                         </a>
-                        <a href="https://facebook.com/brb.uz" class="footer-social-link" target="_blank">
+                        <a href="#" class="footer-social-link" target="_blank">
                             <i class="bi bi-facebook"></i>
                         </a>
                     </div>
@@ -964,11 +961,11 @@
                 </div>
 
                 <div>
-                    <h6 class="footer-title">О банке</h6>
+                    <h6 class="footer-title">О компании</h6>
                     <ul class="footer-links">
-                        <li><a href="https://brb.uz" target="_blank">Официальный сайт</a></li>
-                        <li><a href="https://brb.uz/about" target="_blank">О компании</a></li>
-                        <li><a href="https://brb.uz/contacts" target="_blank">Контакты</a></li>
+                        <li><a href="#" target="_blank">Официальный сайт</a></li>
+                        <li><a href="#" target="_blank">О компании</a></li>
+                        <li><a href="#" target="_blank">Контакты</a></li>
                     </ul>
                 </div>
 
@@ -980,9 +977,9 @@
                             г. Ташкент, ул. Шахрисабз, 21
                         </li>
                         <li>
-                            <a href="mailto:hr@brb.uz">
+                            <a href="mailto:hr@company.uz">
                                 <i class="bi bi-envelope"></i>
-                                hr@brb.uz
+                                hr@company.uz
                             </a>
                         </li>
                         <li>
@@ -996,7 +993,7 @@
             </div>
 
             <div class="footer-bottom">
-                <span>&copy; {{ date('Y') }} BRB Bank. Все права защищены.</span>
+                <span>&copy; {{ date('Y') }} {{ config('app.name') }}. Все права защищены.</span>
                 <span>Сделано с <i class="bi bi-heart-fill" style="color: var(--brb-primary);"></i> в Узбекистане</span>
             </div>
         </div>

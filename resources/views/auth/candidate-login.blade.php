@@ -83,7 +83,7 @@
     <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #E5E7EB; text-align: center; display: flex; flex-direction: column; gap: 10px;">
         <a href="{{ route('login') }}" style="font-size: 13px; color: #6B7280; text-decoration: none;">
             <i class="bi bi-briefcase me-1"></i>
-            Вход для сотрудников BRB
+            Вход для сотрудников
         </a>
         <a href="{{ route('admin.login') }}" style="font-size: 13px; color: #6B7280; text-decoration: none;">
             <i class="bi bi-gear me-1"></i>

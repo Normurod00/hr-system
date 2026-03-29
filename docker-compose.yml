@@ -1,5 +1,6 @@
-version: "3.9"
-
+#version: "3.9"
+# volume lis
+# ls -la /var/lib/docker/volumes/
 services:
   # ── Laravel PHP-FPM ──
   app:
@@ -7,12 +8,12 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: hr-app
-    working_dir: /opt/hr-servis
+    working_dir: /opt/hr-system
     restart: unless-stopped
     ports:
       - "127.0.0.1:9000:9000"
     volumes:
-      - ./:/opt/hr-servis
+      - ./:/opt/hr-system
     depends_on:
       db:
         condition: service_healthy
@@ -32,11 +33,11 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: hr-worker
-    working_dir: /opt/hr-servis
+    working_dir: /opt/hr-system
     restart: unless-stopped
     command: supervisord -c /etc/supervisor/conf.d/supervisord.conf -n
     volumes:
-      - ./:/opt/hr-servis
+      - ./:/opt/hr-system
     depends_on:
       - app
     environment:

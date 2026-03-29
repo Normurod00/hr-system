@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Вакансии — BRB Bank HR')
+@section('title', 'Вакансии — ' . config('app.name'))
 
 @section('content')
     @push('styles')
@@ -786,7 +786,7 @@
             <div class="page-header-content">
                 <div class="page-header-top">
                     <div>
-                        <h1 class="page-title">Вакансии BRB Bank</h1>
+                        <h1 class="page-title">Вакансии</h1>
                         <p class="page-stats">
                             <span class="page-stats-badge">
                                 <i class="bi bi-briefcase-fill"></i>
@@ -884,7 +884,7 @@
                 <div class="info-card">
                     <h4 class="info-card-title">
                         <i class="bi bi-building"></i>
-                        О BRB Bank
+                        О компании
                     </h4>
                     <p class="info-card-desc">
                         Один из ведущих банков Узбекистана с фокусом на инновации и качественное обслуживание клиентов.
@@ -930,9 +930,9 @@
                                     <a href="{{ route('vacant.show', $vacancy) }}">{{ $vacancy->title }}</a>
                                 </h2>
                                 <div class="vacancy-item-company">
-                                    <div class="company-logo">BRB</div>
+                                    <div class="company-logo">HR</div>
                                     <div class="company-info">
-                                        <span class="company-name">BRB Bank</span>
+                                        <span class="company-name">{{ config('app.name') }}</span>
                                         <span class="company-location">
                                             <i class="bi bi-geo-alt"></i>
                                             {{ $vacancy->location ?? $vacancy->city ?? 'Ташкент' }}

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Авторизация') — BRB Bank Careers</title>
+    <title>@yield('title', 'Авторизация') — {{ config('app.name') }}</title>
 
     <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -378,8 +378,8 @@
         <div class="auth-container">
             <div class="auth-logo">
                 <a href="{{ route('home') }}">
-                    <span class="logo-icon">BRB</span>
-                    Careers
+                    <span class="logo-icon">HR</span>
+                    Robot
                 </a>
             </div>
 

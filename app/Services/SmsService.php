@@ -126,7 +126,7 @@ class SmsService
     private function buildStatusMessage(Application $application, ApplicationStatus $status): ?string
     {
         $vacancyTitle = $application->vacancy->title;
-        $companyName = config('app.name', 'BRB');
+        $companyName = config('app.name', 'HR Robot');
 
         return match ($status) {
             ApplicationStatus::InReview => "Ваша заявка на вакансию \"{$vacancyTitle}\" в {$companyName} принята на рассмотрение.",

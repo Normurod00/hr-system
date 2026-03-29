@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
         // Admin
         $admin = new User([
             'name' => 'Администратор',
-            'email' => 'admin@brb.uz',
+            'email' => 'admin@company.uz',
             'password' => Hash::make('password'),
             'phone' => '+998 71 123 45 67',
         ]);
@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
         // HR Manager
         $hr = new User([
             'name' => 'HR Менеджер',
-            'email' => 'hr@brb.uz',
+            'email' => 'hr@company.uz',
             'password' => Hash::make('password'),
             'phone' => '+998 71 234 56 78',
         ]);
@@ -184,11 +184,11 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->command->info('');
-        $this->command->info('=== BRB HR Platform Seeded Successfully ===');
+        $this->command->info('=== HR Robot Platform Seeded Successfully ===');
         $this->command->info('');
         $this->command->info('Test accounts:');
-        $this->command->info('  Admin:     admin@brb.uz     / password');
-        $this->command->info('  HR:        hr@brb.uz        / password');
+        $this->command->info('  Admin:     admin@company.uz  / password');
+        $this->command->info('  HR:        hr@company.uz     / password');
         $this->command->info('  Candidate: ivanov@mail.uz   / password');
         $this->command->info('');
     }

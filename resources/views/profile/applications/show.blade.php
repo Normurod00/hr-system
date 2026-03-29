@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Заявка: ' . $application->vacancy->title . ' — BRB Bank')
+@section('title', 'Заявка: ' . $application->vacancy->title)
 
 @section('content')
 <style>
@@ -384,7 +384,7 @@
                     <h1 class="vacancy-info-title">{{ $application->vacancy->title }}</h1>
 
                     <div class="vacancy-info-meta">
-                        <span><i class="bi bi-building"></i> BRB Bank</span>
+                        <span><i class="bi bi-building"></i> {{ config('app.name') }}</span>
                         @if($application->vacancy->location)
                             <span><i class="bi bi-geo-alt"></i> {{ $application->vacancy->location }}</span>
                         @endif

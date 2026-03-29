@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Сменить пароль — BRB Bank')
+@section('title', 'Сменить пароль')
 
 @section('content')
 <style>

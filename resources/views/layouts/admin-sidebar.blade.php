@@ -6,7 +6,7 @@
         <div class="ui-sidebar__head">
             <a href="{{ route('admin.dashboard') }}" class="brand">
                 <span class="brand__logo">HR</span>
-                <span class="brand__title"><span>BRB</span> HR</span>
+                <span class="brand__title">HR Robot</span>
             </a>
 
             <button id="sidebarToggleRail" class="ui-toggle" type="button" aria-label="Свернуть/развернуть">
@@ -143,6 +143,12 @@
                 <span>Открыть сайт</span>
             </a>
         </nav>
+
+
+
+
+
+        
     </div>
 
     @php
