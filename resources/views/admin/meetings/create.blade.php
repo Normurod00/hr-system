@@ -15,36 +15,36 @@
         width: 40px;
         height: 40px;
         border-radius: 10px;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
+        background: var(--bg);
+        border: 1px solid var(--br);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--text-secondary);
+        color: var(--fg-3);
         text-decoration: none;
         transition: all 0.2s;
     }
     .back-btn:hover {
-        background: var(--brb-red);
+        background: var(--accent);
         color: white;
-        border-color: var(--brb-red);
+        border-color: var(--accent);
     }
     .page-title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: var(--text-primary);
+        color: var(--fg-1);
         margin: 0;
     }
 
     .form-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
+        background: var(--panel);
+        border: 1px solid var(--br);
         border-radius: 16px;
         overflow: hidden;
     }
     .form-card-header {
         padding: 20px 24px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--br);
         display: flex;
         align-items: center;
         gap: 12px;
@@ -54,7 +54,7 @@
         height: 36px;
         border-radius: 10px;
         background: linear-gradient(135deg, rgba(229, 39, 22, 0.1) 0%, rgba(229, 39, 22, 0.05) 100%);
-        color: var(--brb-red);
+        color: var(--accent);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -62,7 +62,7 @@
     .form-card-header h3 {
         font-size: 1.1rem;
         font-weight: 600;
-        color: var(--text-primary);
+        color: var(--fg-1);
         margin: 0;
     }
     .form-card-body {
@@ -75,7 +75,7 @@
         gap: 16px;
         padding: 16px 20px;
         background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--br);
         border-radius: 12px;
         margin-bottom: 20px;
     }
@@ -83,7 +83,7 @@
         width: 56px;
         height: 56px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--brb-red) 0%, #ff6b5b 100%);
+        background: linear-gradient(135deg, var(--accent) 0%, #ff6b5b 100%);
         color: white;
         display: flex;
         align-items: center;
@@ -94,12 +94,12 @@
     .candidate-info h4 {
         font-size: 1rem;
         font-weight: 600;
-        color: var(--text-primary);
+        color: var(--fg-1);
         margin: 0 0 4px 0;
     }
     .candidate-info p {
         font-size: 0.85rem;
-        color: var(--text-secondary);
+        color: var(--fg-3);
         margin: 0;
     }
 
@@ -111,16 +111,16 @@
     .participants-search input {
         width: 100%;
         padding: 14px 16px 14px 44px;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--br);
         border-radius: 10px;
         font-size: 0.95rem;
-        background: var(--card-bg);
-        color: var(--text-primary);
+        background: var(--panel);
+        color: var(--fg-1);
         transition: all 0.2s;
     }
     .participants-search input:focus {
         outline: none;
-        border-color: var(--brb-red);
+        border-color: var(--accent);
         box-shadow: 0 0 0 3px rgba(229, 39, 22, 0.1);
     }
     .participants-search i {
@@ -128,7 +128,7 @@
         left: 16px;
         top: 50%;
         transform: translateY(-50%);
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
 
     .selected-tags {
@@ -143,7 +143,7 @@
         align-items: center;
         gap: 8px;
         padding: 8px 14px;
-        background: linear-gradient(135deg, var(--brb-red) 0%, #ff6b5b 100%);
+        background: linear-gradient(135deg, var(--accent) 0%, #ff6b5b 100%);
         color: white;
         border-radius: 20px;
         font-size: 0.85rem;
@@ -173,7 +173,7 @@
     }
 
     .participants-list {
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--br);
         border-radius: 12px;
         max-height: 320px;
         overflow-y: auto;
@@ -183,7 +183,7 @@
         align-items: center;
         gap: 12px;
         padding: 14px 16px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--br);
         cursor: pointer;
         transition: background 0.2s;
     }
@@ -191,7 +191,7 @@
         border-bottom: none;
     }
     .participant-item:hover {
-        background: var(--bg-secondary);
+        background: var(--bg);
     }
     .participant-item.selected {
         background: rgba(229, 39, 22, 0.05);
@@ -199,7 +199,7 @@
     .participant-item input[type="checkbox"] {
         width: 20px;
         height: 20px;
-        accent-color: var(--brb-red);
+        accent-color: var(--accent);
         cursor: pointer;
     }
     .participant-avatar-sm {
@@ -219,12 +219,12 @@
     }
     .participant-name {
         font-weight: 500;
-        color: var(--text-primary);
+        color: var(--fg-1);
         margin-bottom: 2px;
     }
     .participant-meta {
         font-size: 0.8rem;
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
     .participant-role-badge {
         padding: 4px 10px;
@@ -235,7 +235,7 @@
     }
     .role-admin {
         background: rgba(229, 39, 22, 0.1);
-        color: var(--brb-red);
+        color: var(--accent);
     }
     .role-hr {
         background: rgba(33, 150, 243, 0.1);
@@ -244,8 +244,8 @@
 
     /* Sidebar Cards */
     .sidebar-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
+        background: var(--panel);
+        border: 1px solid var(--br);
         border-radius: 16px;
         padding: 24px;
         margin-bottom: 20px;
@@ -253,14 +253,14 @@
     .sidebar-card-title {
         font-size: 1rem;
         font-weight: 600;
-        color: var(--text-primary);
+        color: var(--fg-1);
         margin-bottom: 20px;
         display: flex;
         align-items: center;
         gap: 10px;
     }
     .sidebar-card-title i {
-        color: var(--brb-red);
+        color: var(--accent);
     }
 
     .tips-list {
@@ -273,9 +273,9 @@
         align-items: flex-start;
         gap: 12px;
         padding: 12px 0;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--br);
         font-size: 0.9rem;
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
     .tips-list li:last-child {
         border-bottom: none;
@@ -301,13 +301,13 @@
         display: block;
         text-align: center;
         padding: 14px;
-        color: var(--text-secondary);
+        color: var(--fg-3);
         text-decoration: none;
         font-size: 0.95rem;
         transition: color 0.2s;
     }
     .cancel-link:hover {
-        color: var(--text-primary);
+        color: var(--fg-1);
     }
 
     /* Duration Select */
@@ -330,27 +330,27 @@
         flex-direction: column;
         align-items: center;
         padding: 16px 12px;
-        background: var(--bg-secondary);
+        background: var(--bg);
         border: 2px solid transparent;
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.2s;
     }
     .duration-option label:hover {
-        border-color: var(--brb-red);
+        border-color: var(--accent);
     }
     .duration-option input:checked + label {
         background: rgba(229, 39, 22, 0.1);
-        border-color: var(--brb-red);
+        border-color: var(--accent);
     }
     .duration-option .duration-value {
         font-size: 1.2rem;
         font-weight: 700;
-        color: var(--text-primary);
+        color: var(--fg-1);
     }
     .duration-option .duration-label {
         font-size: 0.75rem;
-        color: var(--text-secondary);
+        color: var(--fg-3);
         margin-top: 4px;
     }
 </style>

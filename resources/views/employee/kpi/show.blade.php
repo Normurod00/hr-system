@@ -256,6 +256,10 @@
                 },
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
             const data = await response.json();
 
             function escapeHtml(str) {
@@ -278,10 +282,18 @@
                     ` : ''}
                 `;
             } else {
-                content.innerHTML = `<div class="alert alert-danger">Ошибка загрузки</div>`;
+                content.innerHTML = `
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        AI-сервер временно недоступен. Попробуйте позже.
+                    </div>`;
             }
         } catch (e) {
-            content.innerHTML = `<div class="alert alert-danger">Ошибка загрузки</div>`;
+            content.innerHTML = `
+                <div class="alert alert-warning mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Не удалось подключиться к AI-серверу. Попробуйте позже.
+                </div>`;
         }
     }
 </script>

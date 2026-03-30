@@ -6,8 +6,8 @@
 @section('content')
 <style>
     .form-section {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
+        background: var(--panel);
+        border: 1px solid var(--br);
         border-radius: 12px;
         padding: 24px;
         margin-bottom: 24px;
@@ -15,14 +15,14 @@
     .form-section-title {
         font-size: 1.1rem;
         font-weight: 600;
-        color: var(--text-primary);
+        color: var(--fg-1);
         margin-bottom: 20px;
         padding-bottom: 12px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--br);
     }
 
     .participants-selector {
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--br);
         border-radius: 8px;
         max-height: 300px;
         overflow-y: auto;
@@ -31,7 +31,7 @@
         display: flex;
         align-items: center;
         padding: 12px 16px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--br);
         cursor: pointer;
         transition: background 0.2s;
     }
@@ -39,7 +39,7 @@
         border-bottom: none;
     }
     .participant-item:hover {
-        background: var(--bg-secondary);
+        background: var(--bg);
     }
     .participant-item.selected {
         background: rgba(229, 39, 22, 0.1);
@@ -51,7 +51,7 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: var(--brb-red);
+        background: var(--accent);
         color: white;
         display: flex;
         align-items: center;
@@ -64,11 +64,11 @@
     }
     .participant-name {
         font-weight: 500;
-        color: var(--text-primary);
+        color: var(--fg-1);
     }
     .participant-role {
         font-size: 0.85rem;
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
 
     .selected-participants {
@@ -82,7 +82,7 @@
         align-items: center;
         gap: 8px;
         padding: 6px 12px;
-        background: var(--brb-red);
+        background: var(--accent);
         color: white;
         border-radius: 20px;
         font-size: 0.9rem;
@@ -98,7 +98,7 @@
 
     .search-input {
         padding: 12px 16px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--br);
     }
     .search-input input {
         width: 100%;

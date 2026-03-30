@@ -174,12 +174,17 @@
                 }),
             });
 
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Ошибка сервера');
+            }
+
             const data = await response.json();
 
-            if (data.success && data.redirect_url) {
+            if (data.redirect_url) {
                 window.location.href = data.redirect_url;
             } else {
-                throw new Error(data.error || 'Ошибка при создании разговора');
+                throw new Error('Не удалось создать разговор');
             }
         } catch (error) {
             alert(error.message);

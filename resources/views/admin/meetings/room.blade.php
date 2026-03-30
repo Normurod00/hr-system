@@ -23,7 +23,7 @@
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-dark);
-            color: var(--text-primary);
+            color: var(--fg-1);
             height: 100vh;
             overflow: hidden;
         }
@@ -57,7 +57,7 @@
         }
         .meeting-info span {
             font-size: 0.85rem;
-            color: var(--text-secondary);
+            color: var(--fg-3);
         }
         .timer {
             display: flex;
@@ -70,7 +70,7 @@
         .timer-dot {
             width: 10px;
             height: 10px;
-            background: var(--brb-red);
+            background: var(--accent);
             border-radius: 50%;
             animation: pulse 1.5s infinite;
         }
@@ -138,18 +138,18 @@
             font-weight: 500;
         }
         .video-label .muted-icon {
-            color: var(--brb-red);
+            color: var(--accent);
         }
 
         .video-placeholder {
             text-align: center;
-            color: var(--text-secondary);
+            color: var(--fg-3);
         }
         .video-placeholder .avatar {
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--brb-red), #ff6b5b);
+            background: linear-gradient(135deg, var(--accent), #ff6b5b);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -187,10 +187,10 @@
             transform: scale(1.05);
         }
         .control-btn.active {
-            background: var(--brb-red);
+            background: var(--accent);
         }
         .control-btn.end-call {
-            background: var(--brb-red);
+            background: var(--accent);
             width: 70px;
             height: 70px;
             font-size: 1.5rem;
@@ -218,7 +218,7 @@
             gap: 10px;
         }
         .sidebar-header h2 i {
-            color: var(--brb-red);
+            color: var(--accent);
         }
         .participants-list {
             flex: 1;
@@ -242,7 +242,7 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--brb-red), #ff6b5b);
+            background: linear-gradient(135deg, var(--accent), #ff6b5b);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -258,7 +258,7 @@
         }
         .participant-card .status {
             font-size: 0.8rem;
-            color: var(--text-secondary);
+            color: var(--fg-3);
         }
         .participant-card .status.online {
             color: var(--success);
@@ -269,10 +269,10 @@
         .participant-card .icons {
             display: flex;
             gap: 8px;
-            color: var(--text-secondary);
+            color: var(--fg-3);
         }
         .participant-card .icons i.off {
-            color: var(--brb-red);
+            color: var(--accent);
         }
 
         /* Waiting Request Card */
@@ -336,10 +336,10 @@
         }
         .btn-reject {
             background: rgba(255,255,255,0.1);
-            color: var(--text-secondary);
+            color: var(--fg-3);
         }
         .btn-reject:hover {
-            background: var(--brb-red);
+            background: var(--accent);
             color: white;
         }
 
@@ -366,7 +366,7 @@
         }
         .notification.success { border-left: 4px solid var(--success); }
         .notification.warning { border-left: 4px solid var(--warning); }
-        .notification.error { border-left: 4px solid var(--brb-red); }
+        .notification.error { border-left: 4px solid var(--accent); }
 
         /* Audio Elements */
         .waiting-audio { display: none; }

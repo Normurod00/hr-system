@@ -102,6 +102,7 @@ class EmployeeKpiController extends Controller
 
         // Проверяем, есть ли уже сохранённые рекомендации
         $existingRecommendations = $snapshot->recommendations()->byPriority()->get();
+        $aiError = null;
 
         if ($existingRecommendations->isEmpty()) {
             // Запрашиваем у AI
@@ -127,12 +128,15 @@ class EmployeeKpiController extends Controller
                 }
 
                 $existingRecommendations = $snapshot->recommendations()->byPriority()->get();
+            } elseif (!$result['success']) {
+                $aiError = $result['error'] ?? 'AI-сервер временно недоступен';
             }
         }
 
         return view('employee.kpi.recommendations', [
             'snapshot' => $snapshot,
             'recommendations' => $existingRecommendations,
+            'aiError' => $aiError,
         ]);
     }
 

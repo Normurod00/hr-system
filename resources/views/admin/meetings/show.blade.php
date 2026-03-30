@@ -6,7 +6,7 @@
 @section('content')
 <style>
     .meeting-hero {
-        background: linear-gradient(135deg, var(--brb-red) 0%, #c41e0a 100%);
+        background: linear-gradient(135deg, var(--accent) 0%, #c41e0a 100%);
         color: white;
         border-radius: 16px;
         padding: 32px;
@@ -34,8 +34,8 @@
     }
 
     .info-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
+        background: var(--panel);
+        border: 1px solid var(--br);
         border-radius: 12px;
         padding: 24px;
         margin-bottom: 24px;
@@ -43,14 +43,14 @@
     .info-card-title {
         font-size: 1rem;
         font-weight: 600;
-        color: var(--text-primary);
+        color: var(--fg-1);
         margin-bottom: 16px;
         display: flex;
         align-items: center;
         gap: 8px;
     }
     .info-card-title i {
-        color: var(--brb-red);
+        color: var(--accent);
     }
 
     .participant-list {
@@ -63,7 +63,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 12px 16px;
-        background: var(--bg-secondary);
+        background: var(--bg);
         border-radius: 8px;
     }
     .participant-info {
@@ -75,7 +75,7 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: var(--brb-red);
+        background: var(--accent);
         color: white;
         display: flex;
         align-items: center;
@@ -90,7 +90,7 @@
         padding: 2px 8px;
         border-radius: 10px;
         background: rgba(229, 39, 22, 0.1);
-        color: var(--brb-red);
+        color: var(--accent);
     }
 
     .status-badge {
@@ -114,7 +114,7 @@
         align-items: center;
         gap: 12px;
         padding: 12px 16px;
-        background: var(--bg-secondary);
+        background: var(--bg);
         border-radius: 8px;
         margin-top: 16px;
     }
@@ -123,7 +123,7 @@
         border: none;
         background: transparent;
         font-size: 0.9rem;
-        color: var(--text-primary);
+        color: var(--fg-1);
     }
 </style>
 

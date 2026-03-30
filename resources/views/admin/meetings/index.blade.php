@@ -7,7 +7,7 @@
 <style>
     /* Page Header */
     .page-intro {
-        background: linear-gradient(135deg, var(--brb-red) 0%, #c41e0a 100%);
+        background: linear-gradient(135deg, var(--accent) 0%, #c41e0a 100%);
         border-radius: 16px;
         padding: 32px;
         margin-bottom: 24px;
@@ -43,7 +43,7 @@
     }
     .btn-white {
         background: white;
-        color: var(--brb-red);
+        color: var(--accent);
         border: none;
         padding: 12px 24px;
         border-radius: 10px;
@@ -78,8 +78,8 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .theme-dark .stat-card {
-        background: var(--card-bg);
-        border-color: var(--border-color);
+        background: var(--panel);
+        border-color: var(--br);
     }
     .stat-icon {
         width: 48px;
@@ -101,14 +101,14 @@
         color: #1f2937;
     }
     .theme-dark .stat-info h3 {
-        color: var(--text-primary);
+        color: var(--fg-1);
     }
     .stat-info span {
         font-size: 0.85rem;
         color: #6b7280;
     }
     .theme-dark .stat-info span {
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
 
     /* Filter & Search */
@@ -128,7 +128,7 @@
         border-radius: 10px;
     }
     .theme-dark .filter-tabs {
-        background: var(--bg-secondary);
+        background: var(--bg);
     }
     .filter-tab {
         padding: 10px 20px;
@@ -141,21 +141,21 @@
         transition: all 0.2s;
     }
     .theme-dark .filter-tab {
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
     .filter-tab:hover {
         color: #1f2937;
     }
     .theme-dark .filter-tab:hover {
-        color: var(--text-primary);
+        color: var(--fg-1);
     }
     .filter-tab.active {
         background: white;
-        color: var(--brb-red);
+        color: var(--accent);
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
     .theme-dark .filter-tab.active {
-        background: var(--card-bg);
+        background: var(--panel);
     }
 
     /* Meeting Cards Grid */
@@ -174,13 +174,13 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .theme-dark .meeting-card {
-        background: var(--card-bg);
-        border-color: var(--border-color);
+        background: var(--panel);
+        border-color: var(--br);
     }
     .meeting-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-        border-color: var(--brb-red);
+        border-color: var(--accent);
     }
 
     .meeting-card-header {
@@ -212,8 +212,8 @@
         color: #6b7280;
     }
     .theme-dark .status-completed {
-        background: var(--bg-secondary);
-        color: var(--text-secondary);
+        background: var(--bg);
+        color: var(--fg-3);
     }
     .status-cancelled {
         background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
@@ -240,7 +240,7 @@
         overflow: hidden;
     }
     .theme-dark .meeting-title {
-        color: var(--text-primary);
+        color: var(--fg-1);
     }
 
     .meeting-candidate {
@@ -249,10 +249,10 @@
         margin-bottom: 16px;
     }
     .theme-dark .meeting-candidate {
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
     .meeting-candidate i {
-        color: var(--brb-red);
+        color: var(--accent);
         margin-right: 6px;
     }
 
@@ -266,7 +266,7 @@
         margin-bottom: 16px;
     }
     .theme-dark .meeting-datetime {
-        background: var(--bg-secondary);
+        background: var(--bg);
     }
     .datetime-item {
         display: flex;
@@ -274,7 +274,7 @@
         gap: 8px;
     }
     .datetime-item i {
-        color: var(--brb-red);
+        color: var(--accent);
         font-size: 1rem;
     }
     .datetime-item .label {
@@ -284,7 +284,7 @@
         letter-spacing: 0.5px;
     }
     .theme-dark .datetime-item .label {
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
     .datetime-item .value {
         font-size: 0.9rem;
@@ -292,7 +292,7 @@
         color: #1f2937;
     }
     .theme-dark .datetime-item .value {
-        color: var(--text-primary);
+        color: var(--fg-1);
     }
 
     .meeting-participants-section {
@@ -306,7 +306,7 @@
         margin-bottom: 10px;
     }
     .theme-dark .participants-label {
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
     .participants-avatars {
         display: flex;
@@ -318,7 +318,7 @@
         border-radius: 50%;
         border: 3px solid white;
         margin-left: -10px;
-        background: linear-gradient(135deg, var(--brb-red) 0%, #ff6b5b 100%);
+        background: linear-gradient(135deg, var(--accent) 0%, #ff6b5b 100%);
         color: white;
         display: flex;
         align-items: center;
@@ -329,7 +329,7 @@
         transition: all 0.2s;
     }
     .theme-dark .participant-avatar {
-        border-color: var(--card-bg);
+        border-color: var(--panel);
     }
     .participant-avatar:first-child {
         margin-left: 0;
@@ -350,8 +350,8 @@
         font-weight: 600;
     }
     .theme-dark .participant-avatar.more {
-        background: var(--bg-secondary);
-        color: var(--text-secondary);
+        background: var(--bg);
+        color: var(--fg-3);
     }
     .participants-count {
         margin-left: 12px;
@@ -359,7 +359,7 @@
         color: #6b7280;
     }
     .theme-dark .participants-count {
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
 
     .meeting-card-footer {
@@ -369,7 +369,7 @@
         gap: 10px;
     }
     .theme-dark .meeting-card-footer {
-        border-color: var(--border-color);
+        border-color: var(--br);
     }
     .meeting-card-footer .btn {
         flex: 1;
@@ -391,8 +391,8 @@
         border-radius: 16px;
     }
     .theme-dark .empty-state {
-        background: var(--card-bg);
-        border-color: var(--border-color);
+        background: var(--panel);
+        border-color: var(--br);
     }
     .empty-state-icon {
         width: 100px;
@@ -406,7 +406,7 @@
     }
     .empty-state-icon i {
         font-size: 2.5rem;
-        color: var(--brb-red);
+        color: var(--accent);
     }
     .empty-state h4 {
         font-size: 1.25rem;
@@ -415,7 +415,7 @@
         margin-bottom: 8px;
     }
     .theme-dark .empty-state h4 {
-        color: var(--text-primary);
+        color: var(--fg-1);
     }
     .empty-state p {
         color: #6b7280;
@@ -425,7 +425,7 @@
         margin-right: auto;
     }
     .theme-dark .empty-state p {
-        color: var(--text-secondary);
+        color: var(--fg-3);
     }
 
     /* Pagination */
@@ -453,17 +453,17 @@
         transition: all 0.2s;
     }
     .theme-dark .page-link {
-        background: var(--card-bg);
-        border-color: var(--border-color);
-        color: var(--text-primary);
+        background: var(--panel);
+        border-color: var(--br);
+        color: var(--fg-1);
     }
     .page-link:hover {
-        border-color: var(--brb-red);
-        color: var(--brb-red);
+        border-color: var(--accent);
+        color: var(--accent);
     }
     .page-item.active .page-link {
-        background: var(--brb-red);
-        border-color: var(--brb-red);
+        background: var(--accent);
+        border-color: var(--accent);
         color: white;
     }
     .page-item.disabled .page-link {
