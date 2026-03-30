@@ -28,26 +28,25 @@ services:
       - hr-net
 
   # ── Queue Worker + Scheduler ──
-  worker:
-    build:
-      context: .
-      dockerfile: docker/php/Dockerfile
-    container_name: hr-worker
-    working_dir: /opt/hr-system
-    restart: unless-stopped
-    command: supervisord -c /etc/supervisor/conf.d/supervisord.conf -n
-    volumes:
-      - ./:/opt/hr-system
-    depends_on:
-      - app
-    environment:
-      - DB_HOST=db
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - HR_AI_URL=http://ai:8095
-    networks:
-      - hr-net
-
+worker:
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  container_name: hr-worker
+  working_dir: /opt/hr-servis
+  restart: unless-stopped
+  command: supervisord -c /etc/supervisor/conf.d/supervisord.conf -n
+  volumes:
+    - ./:/opt/hr-servis
+  depends_on:
+    - app
+  environment:
+    - DB_HOST=db
+    - REDIS_HOST=redis
+    - REDIS_PASSWORD=${REDIS_PASSWORD}
+    - HR_AI_URL=http://ai:8095
+  networks:
+    - hr-net
   # ── AI Server (FastAPI) ──
   ai:
     build:
