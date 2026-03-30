@@ -214,99 +214,104 @@ textarea.form-control {
     background: rgba(0,0,0,0.18);
 }
 
-/* Skills Dropdown */
-.skills-dropdown {
-    position: relative;
-}
-
-.skills-dropdown__input {
-    position: relative;
-}
-
-.skills-dropdown__input .form-control {
-    padding-right: 44px;
-}
-
-.skills-dropdown__toggle {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--fg-3);
-    cursor: pointer;
-    padding: 4px;
-    transition: transform 0.2s ease;
-}
-
-.skills-dropdown__toggle.open {
-    transform: translateY(-50%) rotate(180deg);
-}
-
-.skills-dropdown__menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--panel, #ffffff);
-    border: 2px solid var(--br, #e9edf5);
-    border-top: none;
-    border-radius: 0 0 12px 12px;
-    padding: 14px;
-    z-index: 100;
+/* Skills Modal */
+.skills-modal-overlay {
     display: none;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-    max-height: 440px;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.skills-modal-overlay.show { display: flex; }
+.skills-modal {
+    background: var(--panel, #ffffff);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 640px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    animation: skillsModalIn 0.2s ease;
+}
+@keyframes skillsModalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.skills-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--br, #e9edf5);
+}
+.skills-modal__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--fg-1, #0f1526);
+    margin: 0;
+}
+.skills-modal__close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: var(--grid, #eef1f7);
+    color: var(--fg-3, #7c87a5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.15s;
+}
+.skills-modal__close:hover { background: #fee2e2; color: #dc2626; }
+.skills-modal__search {
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--br, #e9edf5);
+}
+.skills-modal__search input {
+    width: 100%;
+    padding: 10px 16px;
+    border: 2px solid var(--br, #e9edf5);
+    border-radius: 10px;
+    font-size: 14px;
+    background: var(--panel, #ffffff);
+    color: var(--fg-1, #0f1526);
+    outline: none;
+    transition: border-color 0.15s;
+}
+.skills-modal__search input:focus { border-color: var(--accent, #E52716); }
+.skills-modal__search input::placeholder { color: var(--fg-3, #7c87a5); }
+.skills-modal__body {
+    flex: 1;
     overflow-y: auto;
+    padding: 16px 24px;
 }
-
-.skills-dropdown__menu.show {
-    display: block;
-}
-
-.skills-dropdown__group-title {
+.skills-modal__group-title {
     font-size: 11px;
     font-weight: 700;
     color: var(--fg-3, #7c87a5);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin: 12px 0 8px 0;
+    margin: 16px 0 8px 0;
     padding-bottom: 4px;
     border-bottom: 1px solid var(--br, #e9edf5);
-    width: 100%;
-    flex-basis: 100%;
 }
-
-.skills-dropdown__group-title:first-child {
-    margin-top: 0;
-}
-
-.skills-dropdown__label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--fg-3);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.skills-dropdown__count {
-    background: var(--grid);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-}
-
-.skills-dropdown__options {
+.skills-modal__group-title:first-child { margin-top: 0; }
+.skills-modal__options {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    margin-bottom: 4px;
 }
-
 .skill-option {
     display: inline-flex;
     align-items: center;
-    padding: 6px 14px;
+    padding: 7px 14px;
     background: var(--grid, #eef1f7);
     border: 1px solid var(--br, #e9edf5);
     border-radius: 8px;
@@ -315,29 +320,71 @@ textarea.form-control {
     color: var(--fg-2, #2d3754);
     cursor: pointer;
     transition: all 0.15s ease;
+    user-select: none;
 }
-
 .skill-option:hover {
     background: rgba(59, 130, 246, 0.1);
     border-color: rgba(59, 130, 246, 0.3);
     color: #2563eb;
-    transform: translateY(-1px);
 }
-
-.skills-dropdown__empty {
-    color: var(--fg-3);
+.skill-option.selected {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #16a34a;
+}
+.skill-option.selected::after {
+    content: '\2713';
+    margin-left: 6px;
+    font-size: 11px;
+}
+.skills-modal__empty {
+    color: var(--fg-3, #7c87a5);
     font-size: 13px;
     text-align: center;
-    padding: 20px;
+    padding: 30px 20px;
 }
-
-.skills-dropdown__hint {
-    font-size: 11px;
-    color: var(--fg-3);
-    text-align: center;
-    padding: 8px 0 0 0;
-    border-top: 1px solid var(--br);
-    margin-top: 10px;
+.skills-modal__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-top: 1px solid var(--br, #e9edf5);
+}
+.skills-modal__counter {
+    font-size: 13px;
+    color: var(--fg-3, #7c87a5);
+}
+.skills-modal__counter strong { color: var(--fg-1, #0f1526); }
+.skills-modal__done {
+    padding: 8px 24px;
+    background: var(--accent, #E52716);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.skills-modal__done:hover { opacity: 0.9; }
+.skills-open-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 2px dashed var(--br, #e9edf5);
+    border-radius: 10px;
+    background: none;
+    color: var(--fg-3, #7c87a5);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+}
+.skills-open-btn:hover {
+    border-color: var(--accent, #E52716);
+    color: var(--accent, #E52716);
+    background: rgba(229, 39, 22, 0.03);
 }
 
 /* Checkbox Switch */
@@ -787,22 +834,9 @@ textarea.form-control {
                             Обязательные навыки (must-have)
                         </label>
                         <div class="skills-tags" id="mustHaveTags"></div>
-                        <div class="skills-dropdown" id="mustHaveDropdown">
-                            <div class="skills-dropdown__input">
-                                <input type="text"
-                                       class="form-control @error('must_have_skills') is-invalid @enderror"
-                                       id="must_have_skills_search"
-                                       placeholder="Поиск навыков..."
-                                       autocomplete="off">
-                                <span class="skills-dropdown__toggle" id="mustHaveToggle">
-                                    <i class="bi bi-chevron-down"></i>
-                                </span>
-                            </div>
-                            <div class="skills-dropdown__menu" id="mustHaveMenu">
-                                <span class="skills-dropdown__label">Доступные навыки</span>
-                                <div class="skills-dropdown__options" id="mustHaveOptions"></div>
-                            </div>
-                        </div>
+                        <button type="button" class="skills-open-btn" id="mustHaveOpenBtn">
+                            <i class="bi bi-plus-circle"></i> Выбрать навыки
+                        </button>
                         <input type="hidden" id="must_have_skills" name="must_have_skills_input"
                                value="{{ old('must_have_skills_input', implode(', ', $vacancy->must_have_skills ?? [])) }}">
                         <div class="form-text">Кандидат должен владеть этими навыками. Влияют на match score.</div>
@@ -818,22 +852,9 @@ textarea.form-control {
                             Желательные навыки (nice-to-have)
                         </label>
                         <div class="skills-tags" id="niceToHaveTags"></div>
-                        <div class="skills-dropdown" id="niceToHaveDropdown">
-                            <div class="skills-dropdown__input">
-                                <input type="text"
-                                       class="form-control @error('nice_to_have_skills') is-invalid @enderror"
-                                       id="nice_to_have_skills_search"
-                                       placeholder="Поиск навыков..."
-                                       autocomplete="off">
-                                <span class="skills-dropdown__toggle" id="niceToHaveToggle">
-                                    <i class="bi bi-chevron-down"></i>
-                                </span>
-                            </div>
-                            <div class="skills-dropdown__menu" id="niceToHaveMenu">
-                                <span class="skills-dropdown__label">Доступные навыки</span>
-                                <div class="skills-dropdown__options" id="niceToHaveOptions"></div>
-                            </div>
-                        </div>
+                        <button type="button" class="skills-open-btn" id="niceToHaveOpenBtn">
+                            <i class="bi bi-plus-circle"></i> Выбрать навыки
+                        </button>
                         <input type="hidden" id="nice_to_have_skills" name="nice_to_have_skills_input"
                                value="{{ old('nice_to_have_skills_input', implode(', ', $vacancy->nice_to_have_skills ?? [])) }}">
                         <div class="form-text">Желательные, но не обязательные навыки</div>
@@ -941,12 +962,28 @@ textarea.form-control {
         </div>
     </div>
 </div>
+<!-- Skills Modal -->
+<div class="skills-modal-overlay" id="skillsModalOverlay">
+    <div class="skills-modal">
+        <div class="skills-modal__header">
+            <h3 class="skills-modal__title" id="skillsModalTitle">Выбор навыков</h3>
+            <button type="button" class="skills-modal__close" id="skillsModalClose"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="skills-modal__search">
+            <input type="text" id="skillsModalSearch" placeholder="Поиск навыков... (Enter — добавить свой)" autocomplete="off">
+        </div>
+        <div class="skills-modal__body" id="skillsModalBody"></div>
+        <div class="skills-modal__footer">
+            <span class="skills-modal__counter">Выбрано: <strong id="skillsModalCount">0</strong></span>
+            <button type="button" class="skills-modal__done" id="skillsModalDone">Готово</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Recommended skills database grouped by category
     const skillGroups = {
         'Языки программирования': ['JavaScript', 'TypeScript', 'Python', 'Java', 'PHP', 'C#', 'C++', 'Go', 'Rust', 'Ruby', 'Swift', 'Kotlin'],
         'Frontend': ['React', 'Vue.js', 'Angular', 'Next.js', 'Nuxt.js', 'HTML5', 'CSS3', 'SASS', 'LESS', 'Tailwind CSS', 'Bootstrap'],
@@ -961,114 +998,165 @@ document.addEventListener('DOMContentLoaded', function() {
         'Управление': ['Agile', 'Scrum', 'Kanban', 'Jira', 'Confluence', 'Team Lead', 'Project Management'],
         'Финансы': ['1C', 'SAP', 'Финансовый анализ', 'Бухгалтерский учёт', 'Excel', 'VBA'],
     };
-    const recommendedSkills = Object.values(skillGroups).flat();
+    const allSkills = Object.values(skillGroups).flat();
 
-    const dropdownInstances = {};
+    // State for both skill sets
+    const state = {
+        must_have_skills: [],
+        nice_to_have_skills: [],
+    };
 
-    function initSkillsDropdown(config) {
-        const { hiddenInputId, searchInputId, tagsContainerId, toggleId, menuId, optionsContainerId, tagClass, excludeFromId } = config;
-        const hiddenInput = document.getElementById(hiddenInputId);
-        const searchInput = document.getElementById(searchInputId);
-        const tagsContainer = document.getElementById(tagsContainerId);
-        const toggle = document.getElementById(toggleId);
-        const menu = document.getElementById(menuId);
-        const optionsContainer = document.getElementById(optionsContainerId);
-        let skills = [];
-        let isOpen = false;
+    // Modal elements
+    const overlay = document.getElementById('skillsModalOverlay');
+    const modalBody = document.getElementById('skillsModalBody');
+    const modalSearch = document.getElementById('skillsModalSearch');
+    const modalTitle = document.getElementById('skillsModalTitle');
+    const modalCount = document.getElementById('skillsModalCount');
+    let activeKey = null; // 'must_have_skills' or 'nice_to_have_skills'
 
-        dropdownInstances[hiddenInputId] = { getSkills: () => skills };
+    // Parse initial values
+    ['must_have_skills', 'nice_to_have_skills'].forEach(key => {
+        const val = document.getElementById(key).value.trim();
+        if (val) state[key] = val.split(',').map(s => s.trim()).filter(s => s);
+    });
 
-        if (hiddenInput.value.trim()) {
-            skills = hiddenInput.value.split(',').map(s => s.trim()).filter(s => s);
-            renderTags();
-        }
-
-        function getExcludedSkills() {
-            if (excludeFromId && dropdownInstances[excludeFromId]) {
-                return dropdownInstances[excludeFromId].getSkills();
-            }
-            return [];
-        }
-
-        function renderOptions(filter = '') {
-            const filterLower = filter.toLowerCase();
-            const excluded = getExcludedSkills();
-            let html = '';
-            let totalCount = 0;
-
-            if (filter.trim()) {
-                const filtered = recommendedSkills.filter(skill =>
-                    skill.toLowerCase().includes(filterLower) && !skills.includes(skill) && !excluded.includes(skill)
-                );
-                totalCount = filtered.length;
-                if (filtered.length === 0) {
-                    html = `<div class="skill-option" data-skill="${filter}"><i class="bi bi-plus-circle me-1"></i> Добавить "${filter}"</div>`;
-                } else {
-                    html = filtered.map(skill => `<div class="skill-option" data-skill="${skill}">${skill}</div>`).join('');
-                }
-            } else {
-                for (const [group, groupSkills] of Object.entries(skillGroups)) {
-                    const available = groupSkills.filter(skill => !skills.includes(skill) && !excluded.includes(skill));
-                    if (available.length === 0) continue;
-                    totalCount += available.length;
-                    html += `<div class="skills-dropdown__group-title">${group}</div>`;
-                    html += available.map(skill => `<div class="skill-option" data-skill="${skill}">${skill}</div>`).join('');
-                }
-                if (!html) {
-                    html = '<div class="skills-dropdown__empty">Все навыки уже добавлены</div>';
-                }
-            }
-
-            // Update label with count
-            const label = menu.querySelector('.skills-dropdown__label');
-            if (label) {
-                label.innerHTML = `Доступные навыки <span class="skills-dropdown__count">${totalCount}</span>`;
-            }
-
-            optionsContainer.innerHTML = html;
-            if (totalCount > 0 && !filter.trim()) {
-                optionsContainer.insertAdjacentHTML('afterend',
-                    optionsContainer.nextElementSibling?.classList.contains('skills-dropdown__hint') ? '' :
-                    '<div class="skills-dropdown__hint">Введите текст для поиска или нажмите Enter для добавления нового навыка</div>'
-                );
-            }
-            optionsContainer.querySelectorAll('.skill-option').forEach(opt => {
-                opt.addEventListener('click', function() {
-                    const skill = this.dataset.skill;
-                    if (!skills.includes(skill)) { skills.push(skill); updateHiddenInput(); renderTags(); renderOptions(searchInput.value); }
-                    searchInput.value = ''; searchInput.focus();
-                });
-            });
-        }
-
-        function renderTags() {
-            tagsContainer.innerHTML = skills.map(skill => `<span class="skill-tag ${tagClass}">${skill}<span class="skill-tag__remove" data-skill="${skill}"><i class="bi bi-x"></i></span></span>`).join('');
-            tagsContainer.querySelectorAll('.skill-tag__remove').forEach(btn => { btn.addEventListener('click', function() { removeSkill(this.dataset.skill); }); });
-        }
-
-        function removeSkill(skill) { skills = skills.filter(s => s !== skill); updateHiddenInput(); renderTags(); renderOptions(searchInput.value); }
-        function updateHiddenInput() { hiddenInput.value = skills.join(', '); }
-        function openMenu() { isOpen = true; menu.classList.add('show'); toggle.classList.add('open'); renderOptions(searchInput.value); }
-        function closeMenu() { isOpen = false; menu.classList.remove('show'); toggle.classList.remove('open'); }
-
-        searchInput.addEventListener('focus', openMenu);
-        searchInput.addEventListener('input', () => renderOptions(searchInput.value));
-        searchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') { e.preventDefault(); const value = searchInput.value.trim(); if (value && !skills.includes(value)) { skills.push(value); updateHiddenInput(); renderTags(); searchInput.value = ''; renderOptions(''); } }
-            if (e.key === 'Escape') { closeMenu(); searchInput.blur(); }
-        });
-        toggle.addEventListener('click', function(e) { e.stopPropagation(); if (isOpen) { closeMenu(); } else { openMenu(); searchInput.focus(); } });
-        document.addEventListener('click', function(e) { if (!menu.contains(e.target) && !searchInput.contains(e.target) && !toggle.contains(e.target)) { closeMenu(); } });
-        renderOptions();
+    function getOtherKey(key) {
+        return key === 'must_have_skills' ? 'nice_to_have_skills' : 'must_have_skills';
     }
 
-    initSkillsDropdown({ hiddenInputId: 'must_have_skills', searchInputId: 'must_have_skills_search', tagsContainerId: 'mustHaveTags', toggleId: 'mustHaveToggle', menuId: 'mustHaveMenu', optionsContainerId: 'mustHaveOptions', tagClass: 'must-have', excludeFromId: 'nice_to_have_skills' });
-    initSkillsDropdown({ hiddenInputId: 'nice_to_have_skills', searchInputId: 'nice_to_have_skills_search', tagsContainerId: 'niceToHaveTags', toggleId: 'niceToHaveToggle', menuId: 'niceToHaveMenu', optionsContainerId: 'niceToHaveOptions', tagClass: 'nice-to-have', excludeFromId: 'must_have_skills' });
+    function renderTags(key) {
+        const container = document.getElementById(key === 'must_have_skills' ? 'mustHaveTags' : 'niceToHaveTags');
+        const tagClass = key === 'must_have_skills' ? 'must-have' : 'nice-to-have';
+        container.innerHTML = state[key].map(skill => `
+            <span class="skill-tag ${tagClass}">
+                ${skill}
+                <span class="skill-tag__remove" data-key="${key}" data-skill="${skill}">
+                    <i class="bi bi-x"></i>
+                </span>
+            </span>
+        `).join('');
+        container.querySelectorAll('.skill-tag__remove').forEach(btn => {
+            btn.addEventListener('click', function() {
+                state[this.dataset.key] = state[this.dataset.key].filter(s => s !== this.dataset.skill);
+                syncHidden(this.dataset.key);
+                renderTags(this.dataset.key);
+            });
+        });
+    }
 
+    function syncHidden(key) {
+        document.getElementById(key).value = state[key].join(', ');
+    }
+
+    function openModal(key, title) {
+        activeKey = key;
+        modalTitle.textContent = title;
+        modalSearch.value = '';
+        renderModalOptions('');
+        overlay.classList.add('show');
+        setTimeout(() => modalSearch.focus(), 100);
+    }
+
+    function closeModal() {
+        overlay.classList.remove('show');
+        activeKey = null;
+    }
+
+    function renderModalOptions(filter) {
+        const filterLower = filter.toLowerCase();
+        const excluded = state[getOtherKey(activeKey)];
+        const selected = state[activeKey];
+        let html = '';
+
+        if (filter.trim()) {
+            const filtered = allSkills.filter(s =>
+                s.toLowerCase().includes(filterLower) && !excluded.includes(s)
+            );
+            if (filtered.length === 0) {
+                html = `<div class="skills-modal__options"><div class="skill-option" data-skill="${filter}"><i class="bi bi-plus-circle me-1"></i> Добавить "${filter}"</div></div>`;
+            } else {
+                html = '<div class="skills-modal__options">' +
+                    filtered.map(s => `<div class="skill-option ${selected.includes(s) ? 'selected' : ''}" data-skill="${s}">${s}</div>`).join('') +
+                    '</div>';
+            }
+        } else {
+            for (const [group, groupSkills] of Object.entries(skillGroups)) {
+                const available = groupSkills.filter(s => !excluded.includes(s));
+                if (available.length === 0) continue;
+                html += `<div class="skills-modal__group-title">${group}</div>`;
+                html += '<div class="skills-modal__options">' +
+                    available.map(s => `<div class="skill-option ${selected.includes(s) ? 'selected' : ''}" data-skill="${s}">${s}</div>`).join('') +
+                    '</div>';
+            }
+        }
+
+        if (!html) html = '<div class="skills-modal__empty">Ничего не найдено</div>';
+        modalBody.innerHTML = html;
+        modalCount.textContent = selected.length;
+
+        modalBody.querySelectorAll('.skill-option').forEach(opt => {
+            opt.addEventListener('click', function() {
+                const skill = this.dataset.skill;
+                if (selected.includes(skill)) {
+                    state[activeKey] = state[activeKey].filter(s => s !== skill);
+                    this.classList.remove('selected');
+                } else {
+                    state[activeKey].push(skill);
+                    this.classList.add('selected');
+                }
+                modalCount.textContent = state[activeKey].length;
+                syncHidden(activeKey);
+                renderTags(activeKey);
+            });
+        });
+    }
+
+    // Event listeners
+    document.getElementById('mustHaveOpenBtn').addEventListener('click', () =>
+        openModal('must_have_skills', 'Обязательные навыки (must-have)')
+    );
+    document.getElementById('niceToHaveOpenBtn').addEventListener('click', () =>
+        openModal('nice_to_have_skills', 'Желательные навыки (nice-to-have)')
+    );
+    document.getElementById('skillsModalClose').addEventListener('click', closeModal);
+    document.getElementById('skillsModalDone').addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+    modalSearch.addEventListener('input', function() { renderModalOptions(this.value); });
+    modalSearch.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const val = this.value.trim();
+            if (val && !state[activeKey].includes(val)) {
+                state[activeKey].push(val);
+                syncHidden(activeKey);
+                renderTags(activeKey);
+                this.value = '';
+                renderModalOptions('');
+            }
+        }
+        if (e.key === 'Escape') closeModal();
+    });
+
+    // Initial render
+    renderTags('must_have_skills');
+    renderTags('nice_to_have_skills');
+
+    // Form submission - convert to arrays
     document.getElementById('vacancyForm').addEventListener('submit', function(e) {
         const mustHave = document.getElementById('must_have_skills').value;
         const niceToHave = document.getElementById('nice_to_have_skills').value;
-        const createArrayInputs = (name, value) => { value.split(',').map(s => s.trim()).filter(s => s).forEach(item => { const input = document.createElement('input'); input.type = 'hidden'; input.name = name + '[]'; input.value = item; this.appendChild(input); }); };
+
+        const createArrayInputs = (name, value) => {
+            const items = value.split(',').map(s => s.trim()).filter(s => s);
+            items.forEach(item => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name + '[]';
+                input.value = item;
+                this.appendChild(input);
+            });
+        };
+
         if (mustHave) createArrayInputs('must_have_skills', mustHave);
         if (niceToHave) createArrayInputs('nice_to_have_skills', niceToHave);
     });
