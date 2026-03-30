@@ -18,6 +18,15 @@ class EnsureUserCanAccessAdmin
         }
 
         if (!$request->user()->canAccessAdmin()) {
+            // Перенаправляем на правильную страницу по роли
+            if ($request->user()->isCandidate()) {
+                return redirect()->route('vacant.index');
+            }
+
+            if ($request->user()->isEmployee()) {
+                return redirect()->route('employee.dashboard');
+            }
+
             abort(403, 'У вас нет доступа к панели управления.');
         }
 

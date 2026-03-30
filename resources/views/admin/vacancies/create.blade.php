@@ -169,12 +169,19 @@ textarea.form-control {
     min-height: 20px;
 }
 
+.skills-tags:empty::before {
+    content: 'Навыки не выбраны';
+    color: var(--fg-3);
+    font-size: 13px;
+    font-style: italic;
+}
+
 .skill-tag {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 14px;
-    border-radius: 20px;
+    padding: 6px 12px;
+    border-radius: 8px;
     font-size: 13px;
     font-weight: 600;
     cursor: default;
@@ -184,31 +191,32 @@ textarea.form-control {
 .skill-tag.must-have {
     background: rgba(239, 68, 68, 0.1);
     color: #dc2626;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .skill-tag.nice-to-have {
     background: rgba(245, 158, 11, 0.1);
     color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.3);
+    border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .skill-tag__remove {
     cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+    opacity: 0.6;
+    transition: all 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.1);
+    background: rgba(0,0,0,0.08);
+    font-size: 11px;
 }
 
 .skill-tag__remove:hover {
     opacity: 1;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.18);
 }
 
 /* Skills Dropdown */
@@ -247,12 +255,12 @@ textarea.form-control {
     background: var(--panel);
     border: 2px solid var(--br);
     border-top: none;
-    border-radius: 0 0 10px 10px;
-    padding: 16px;
+    border-radius: 0 0 12px 12px;
+    padding: 14px;
     z-index: 100;
     display: none;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    max-height: 300px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    max-height: 360px;
     overflow-y: auto;
 }
 
@@ -260,50 +268,63 @@ textarea.form-control {
     display: block;
 }
 
+.skills-dropdown__group-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fg-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 12px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--br);
+}
+
+.skills-dropdown__group-title:first-child {
+    margin-top: 0;
+}
+
 .skills-dropdown__label {
     font-size: 12px;
     font-weight: 600;
     color: var(--fg-3);
-    margin-bottom: 12px;
-    display: block;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.skills-dropdown__count {
+    background: var(--grid);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
 }
 
 .skills-dropdown__options {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
 }
 
 .skill-option {
     display: inline-flex;
     align-items: center;
-    padding: 8px 16px;
+    padding: 6px 14px;
     background: var(--grid);
     border: 1px solid var(--br);
-    border-radius: 20px;
+    border-radius: 8px;
     font-size: 13px;
     font-weight: 500;
     color: var(--fg-2);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
 }
 
 .skill-option:hover {
     background: rgba(59, 130, 246, 0.1);
     border-color: rgba(59, 130, 246, 0.3);
     color: #2563eb;
-}
-
-.skill-option.selected {
-    background: rgba(34, 197, 94, 0.1);
-    border-color: rgba(34, 197, 94, 0.3);
-    color: #16a34a;
-}
-
-.skill-option.selected::after {
-    content: '✓';
-    margin-left: 6px;
-    font-size: 11px;
+    transform: translateY(-1px);
 }
 
 .skills-dropdown__empty {
@@ -311,6 +332,15 @@ textarea.form-control {
     font-size: 13px;
     text-align: center;
     padding: 20px;
+}
+
+.skills-dropdown__hint {
+    font-size: 11px;
+    color: var(--fg-3);
+    text-align: center;
+    padding: 8px 0 0 0;
+    border-top: 1px solid var(--br);
+    margin-top: 10px;
 }
 
 /* Checkbox Switch */
@@ -718,7 +748,7 @@ textarea.form-control {
                                 </span>
                             </div>
                             <div class="skills-dropdown__menu" id="mustHaveMenu">
-                                <span class="skills-dropdown__label">Рекомендованные навыки</span>
+                                <span class="skills-dropdown__label">Доступные навыки</span>
                                 <div class="skills-dropdown__options" id="mustHaveOptions"></div>
                             </div>
                         </div>
@@ -749,7 +779,7 @@ textarea.form-control {
                                 </span>
                             </div>
                             <div class="skills-dropdown__menu" id="niceToHaveMenu">
-                                <span class="skills-dropdown__label">Рекомендованные навыки</span>
+                                <span class="skills-dropdown__label">Доступные навыки</span>
                                 <div class="skills-dropdown__options" id="niceToHaveOptions"></div>
                             </div>
                         </div>
@@ -846,33 +876,25 @@ textarea.form-control {
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Recommended skills database
-    const recommendedSkills = [
-        // Programming Languages
-        'JavaScript', 'TypeScript', 'Python', 'Java', 'PHP', 'C#', 'C++', 'Go', 'Rust', 'Ruby', 'Swift', 'Kotlin',
-        // Frontend
-        'React', 'Vue.js', 'Angular', 'Next.js', 'Nuxt.js', 'HTML', 'HTML5', 'CSS', 'CSS3', 'SASS', 'LESS', 'Tailwind CSS', 'Bootstrap',
-        // Backend
-        'Node.js', 'Express.js', 'Django', 'Flask', 'Laravel', 'Spring Boot', 'ASP.NET', 'FastAPI', 'NestJS', 'Ruby on Rails',
-        // Databases
-        'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'Elasticsearch', 'Oracle', 'SQL Server', 'SQLite', 'Cassandra',
-        // DevOps & Cloud
-        'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'CI/CD', 'Jenkins', 'GitLab CI', 'GitHub Actions', 'Terraform', 'Ansible',
-        // Tools & Others
-        'Git', 'Linux', 'Nginx', 'Apache', 'REST API', 'GraphQL', 'Microservices', 'RabbitMQ', 'Kafka', 'WebSocket',
-        // Mobile
-        'React Native', 'Flutter', 'iOS', 'Android', 'SwiftUI', 'Jetpack Compose',
-        // Testing
-        'Jest', 'Mocha', 'Cypress', 'Selenium', 'JUnit', 'PHPUnit', 'pytest',
-        // Design & Analytics
-        'Figma', 'Adobe XD', 'Photoshop', 'Google Analytics', 'Power BI', 'Tableau',
-        // Languages
-        'Английский язык', 'Русский язык', 'Узбекский язык',
-        // Soft skills
-        'Agile', 'Scrum', 'Kanban', 'Jira', 'Confluence', 'Team Lead', 'Project Management',
-        // Finance & Banking
-        'SQL', '1C', 'SAP', 'Финансовый анализ', 'Бухгалтерский учёт', 'Excel', 'VBA'
-    ];
+    // Recommended skills database grouped by category
+    const skillGroups = {
+        'Языки программирования': ['JavaScript', 'TypeScript', 'Python', 'Java', 'PHP', 'C#', 'C++', 'Go', 'Rust', 'Ruby', 'Swift', 'Kotlin'],
+        'Frontend': ['React', 'Vue.js', 'Angular', 'Next.js', 'Nuxt.js', 'HTML5', 'CSS3', 'SASS', 'LESS', 'Tailwind CSS', 'Bootstrap'],
+        'Backend': ['Node.js', 'Express.js', 'Django', 'Flask', 'Laravel', 'Spring Boot', 'ASP.NET', 'FastAPI', 'NestJS', 'Ruby on Rails'],
+        'Базы данных': ['MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'Elasticsearch', 'Oracle', 'SQL Server', 'SQLite', 'Cassandra', 'SQL'],
+        'DevOps и облако': ['Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'CI/CD', 'Jenkins', 'GitLab CI', 'GitHub Actions', 'Terraform', 'Ansible'],
+        'Инструменты': ['Git', 'Linux', 'Nginx', 'REST API', 'GraphQL', 'Microservices', 'RabbitMQ', 'Kafka', 'WebSocket'],
+        'Мобильная разработка': ['React Native', 'Flutter', 'iOS', 'Android', 'SwiftUI', 'Jetpack Compose'],
+        'Тестирование': ['Jest', 'Mocha', 'Cypress', 'Selenium', 'JUnit', 'PHPUnit', 'pytest'],
+        'Дизайн и аналитика': ['Figma', 'Adobe XD', 'Photoshop', 'Google Analytics', 'Power BI', 'Tableau'],
+        'Языки': ['Английский язык', 'Русский язык', 'Узбекский язык'],
+        'Управление': ['Agile', 'Scrum', 'Kanban', 'Jira', 'Confluence', 'Team Lead', 'Project Management'],
+        'Финансы': ['1C', 'SAP', 'Финансовый анализ', 'Бухгалтерский учёт', 'Excel', 'VBA'],
+    };
+    const recommendedSkills = Object.values(skillGroups).flat();
+
+    // Shared state between dropdowns
+    const dropdownInstances = {};
 
     // Skills dropdown component
     function initSkillsDropdown(config) {
@@ -883,7 +905,8 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleId,
             menuId,
             optionsContainerId,
-            tagClass
+            tagClass,
+            excludeFromId
         } = config;
 
         const hiddenInput = document.getElementById(hiddenInputId);
@@ -896,35 +919,65 @@ document.addEventListener('DOMContentLoaded', function() {
         let skills = [];
         let isOpen = false;
 
+        // Register instance
+        dropdownInstances[hiddenInputId] = { getSkills: () => skills };
+
         // Parse initial value
         if (hiddenInput.value.trim()) {
             skills = hiddenInput.value.split(',').map(s => s.trim()).filter(s => s);
             renderTags();
         }
 
+        // Get skills from the other dropdown to exclude
+        function getExcludedSkills() {
+            if (excludeFromId && dropdownInstances[excludeFromId]) {
+                return dropdownInstances[excludeFromId].getSkills();
+            }
+            return [];
+        }
+
         // Render recommended skills
         function renderOptions(filter = '') {
             const filterLower = filter.toLowerCase();
-            const filtered = recommendedSkills.filter(skill =>
-                skill.toLowerCase().includes(filterLower) && !skills.includes(skill)
-            );
+            const excluded = getExcludedSkills();
+            let html = '';
+            let totalCount = 0;
 
-            if (filtered.length === 0) {
-                if (filter.trim()) {
-                    optionsContainer.innerHTML = `
-                        <div class="skill-option" data-skill="${filter}" data-custom="true">
-                            <i class="bi bi-plus-circle me-1"></i> Добавить "${filter}"
-                        </div>
-                    `;
+            if (filter.trim()) {
+                const filtered = recommendedSkills.filter(skill =>
+                    skill.toLowerCase().includes(filterLower) && !skills.includes(skill) && !excluded.includes(skill)
+                );
+                totalCount = filtered.length;
+                if (filtered.length === 0) {
+                    html = `<div class="skill-option" data-skill="${filter}" data-custom="true"><i class="bi bi-plus-circle me-1"></i> Добавить "${filter}"</div>`;
                 } else {
-                    optionsContainer.innerHTML = '<div class="skills-dropdown__empty">Все навыки уже добавлены</div>';
+                    html = filtered.map(skill => `<div class="skill-option" data-skill="${skill}">${skill}</div>`).join('');
                 }
             } else {
-                optionsContainer.innerHTML = filtered.slice(0, 20).map(skill => `
-                    <div class="skill-option ${skills.includes(skill) ? 'selected' : ''}" data-skill="${skill}">
-                        ${skill}
-                    </div>
-                `).join('');
+                for (const [group, groupSkills] of Object.entries(skillGroups)) {
+                    const available = groupSkills.filter(skill => !skills.includes(skill) && !excluded.includes(skill));
+                    if (available.length === 0) continue;
+                    totalCount += available.length;
+                    html += `<div class="skills-dropdown__group-title">${group}</div>`;
+                    html += available.map(skill => `<div class="skill-option" data-skill="${skill}">${skill}</div>`).join('');
+                }
+                if (!html) {
+                    html = '<div class="skills-dropdown__empty">Все навыки уже добавлены</div>';
+                }
+            }
+
+            // Update label with count
+            const label = menu.querySelector('.skills-dropdown__label');
+            if (label) {
+                label.innerHTML = `Доступные навыки <span class="skills-dropdown__count">${totalCount}</span>`;
+            }
+
+            optionsContainer.innerHTML = html;
+            if (totalCount > 0 && !filter.trim()) {
+                optionsContainer.insertAdjacentHTML('afterend',
+                    optionsContainer.nextElementSibling?.classList.contains('skills-dropdown__hint') ? '' :
+                    '<div class="skills-dropdown__hint">Введите текст для поиска или нажмите Enter для добавления нового навыка</div>'
+                );
             }
 
             // Add click listeners
@@ -1036,7 +1089,8 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleId: 'mustHaveToggle',
         menuId: 'mustHaveMenu',
         optionsContainerId: 'mustHaveOptions',
-        tagClass: 'must-have'
+        tagClass: 'must-have',
+        excludeFromId: 'nice_to_have_skills'
     });
 
     initSkillsDropdown({
@@ -1046,7 +1100,8 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleId: 'niceToHaveToggle',
         menuId: 'niceToHaveMenu',
         optionsContainerId: 'niceToHaveOptions',
-        tagClass: 'nice-to-have'
+        tagClass: 'nice-to-have',
+        excludeFromId: 'must_have_skills'
     });
 
     // Form submission - convert to arrays

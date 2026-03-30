@@ -30,6 +30,11 @@ class EnsureUserIsEmployee
                 ], 403);
             }
 
+            // Перенаправляем кандидатов на их страницу
+            if ($user->isCandidate()) {
+                return redirect()->route('vacant.index');
+            }
+
             abort(403, 'Доступ только для сотрудников банка');
         }
 
