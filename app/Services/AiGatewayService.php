@@ -34,7 +34,7 @@ class AiGatewayService
     }
 
     /**
-     * Отправить сообщение в чат
+     * Чат сотрудника с AI
      */
     public function chat(
         EmployeeProfile $employee,
@@ -50,14 +50,14 @@ class AiGatewayService
         $payload = [
             'context' => [
                 'type' => 'employee',
-                'employee_id' => $employee->employee_number,
-                'department' => $employee->department,
-                'position' => $employee->position,
-                'conversation_type' => $conversation->context_type->value,
+                'employee_id' => (string) ($employee->employee_number ?? ''),
+                'department' => (string) ($employee->department ?? ''),
+                'position' => (string) ($employee->position ?? ''),
+                'conversation_type' => (string) $conversation->context_type->value,
             ],
             'message' => $message,
             'intent' => $intent,
-            'history' => $conversation->getMessagesForAi(10),
+            'history' => $this->normalizeHistoryForAi($conversation->getMessagesForAi(10)),
             'facts' => $context['facts'] ?? [],
             'policies' => $context['policies'] ?? [],
         ];
@@ -65,7 +65,10 @@ class AiGatewayService
         $log = IntegrationLog::logRequest(
             IntegrationType::AiServer,
             'employee_chat',
-            ['intent' => $intent, 'message_length' => mb_strlen($message)],
+            [
+                'intent' => $intent,
+                'message_length' => mb_strlen($message),
+            ],
             auth()->id()
         );
 
@@ -146,7 +149,7 @@ class AiGatewayService
     }
 
     /**
-     * Получить объяснение KPI
+     * Объяснение KPI
      */
     public function explainKpi(EmployeeProfile $employee, array $kpiData): array
     {
@@ -160,8 +163,8 @@ class AiGatewayService
             ],
             'kpi_data' => $normalizedKpiData,
             'employee' => [
-                'department' => $employee->department,
-                'position' => $employee->position,
+                'department' => (string) ($employee->department ?? ''),
+                'position' => (string) ($employee->position ?? ''),
             ],
         ];
 
@@ -235,7 +238,7 @@ class AiGatewayService
     }
 
     /**
-     * Получить рекомендации по улучшению KPI
+     * Рекомендации по улучшению KPI
      */
     public function getRecommendations(EmployeeProfile $employee, array $kpiData): array
     {
@@ -249,8 +252,8 @@ class AiGatewayService
             ],
             'kpi_data' => $normalizedKpiData,
             'employee' => [
-                'department' => $employee->department,
-                'position' => $employee->position,
+                'department' => (string) ($employee->department ?? ''),
+                'position' => (string) ($employee->position ?? ''),
                 'tenure_months' => $employee->hire_date?->diffInMonths(now()) ?? 0,
             ],
         ];
@@ -327,7 +330,7 @@ class AiGatewayService
     }
 
     /**
-     * Проверить здоровье AI сервера
+     * Health check AI
      */
     public function healthCheck(): array
     {
@@ -360,7 +363,9 @@ class AiGatewayService
         }
     }
 
-    // ===== PRIVATE METHODS =====
+    // ========================
+    // PRIVATE METHODS
+    // ========================
 
     private function detectIntent(string $message): string
     {
@@ -430,16 +435,26 @@ class AiGatewayService
 
             if ($kpiSnapshot) {
                 $context['facts']['current_kpi'] = [
-                    'period' => $kpiSnapshot->period_label,
-                    'total_score' => $kpiSnapshot->total_score,
-                    'metrics' => $kpiSnapshot->metrics,
-                    'bonus_eligible' => $kpiSnapshot->isBonusEligible(),
+                    'period' => (string) $kpiSnapshot->period_label,
+                    'total_score' => (float) $kpiSnapshot->total_score,
+                    'metrics' => $this->normalizeKpiMetricsForFacts((array) $kpiSnapshot->metrics),
+                    'bonus_eligible' => (bool) $kpiSnapshot->isBonusEligible(),
                 ];
             }
 
             $trend = $this->kpiClient->getKpiTrend($employee, 3);
+
             if (!empty($trend)) {
-                $context['facts']['kpi_trend'] = $trend;
+                $context['facts']['kpi_trend'] = collect($trend)
+                    ->map(function ($item) {
+                        return [
+                            'period' => $item['period'] ?? null,
+                            'score' => isset($item['score']) ? (float) $item['score'] : 0.0,
+                            'label' => $item['label'] ?? null,
+                        ];
+                    })
+                    ->values()
+                    ->toArray();
             }
         }
 
@@ -466,8 +481,13 @@ class AiGatewayService
         }
 
         $policyIntents = [
-            'leave_request', 'leave_balance', 'policy_search', 'general',
-            'discipline_question', 'training_question', 'benefits_question',
+            'leave_request',
+            'leave_balance',
+            'policy_search',
+            'general',
+            'discipline_question',
+            'training_question',
+            'benefits_question',
         ];
 
         if (in_array($intent, $policyIntents, true)) {
@@ -515,6 +535,15 @@ class AiGatewayService
         ];
     }
 
+    private function normalizeKpiMetricsForFacts(array $metrics): array
+    {
+        return collect($metrics)
+            ->mapWithKeys(function ($value, $key) {
+                return [$key => $this->normalizeMetric((string) $key, $value)];
+            })
+            ->toArray();
+    }
+
     private function normalizeMetric(string $metricKey, mixed $metricValue): array
     {
         if (is_array($metricValue)) {
@@ -560,6 +589,31 @@ class AiGatewayService
         $decoded = json_decode($body, true);
 
         return json_last_error() === JSON_ERROR_NONE ? $decoded : $body;
+    }
+
+    private function normalizeHistoryForAi(array $history): array
+    {
+        return collect($history)
+            ->map(function ($item) {
+                $role = $item['role'] ?? 'user';
+
+                if (is_object($role) && property_exists($role, 'value')) {
+                    $role = $role->value;
+                } elseif ($role instanceof \BackedEnum) {
+                    $role = $role->value;
+                } elseif ($role instanceof \UnitEnum) {
+                    $role = $role->name;
+                } elseif (is_array($role)) {
+                    $role = reset($role) ?: 'user';
+                }
+
+                return [
+                    'role' => (string) $role,
+                    'content' => (string) ($item['content'] ?? ''),
+                ];
+            })
+            ->values()
+            ->toArray();
     }
 
     private function handleError(EmployeeAiConversation $conversation, string $errorMessage): array
