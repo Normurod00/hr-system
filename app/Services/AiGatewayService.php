@@ -2,12 +2,9 @@
 
 namespace App\Services;
 
-use App\Enums\AiContextType;
-use App\Enums\IntegrationStatus;
 use App\Enums\IntegrationType;
 use App\Models\AuditLog;
 use App\Models\EmployeeAiConversation;
-use App\Models\EmployeeAiMessage;
 use App\Models\EmployeeProfile;
 use App\Models\IntegrationLog;
 use App\Services\Employee\PolicySearchService;
@@ -16,12 +13,6 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Gateway сервис для AI
- *
- * Единственная точка взаимодействия Laravel с FastAPI AI сервером.
- * Обогащает запросы контекстом (KPI, политики) и сохраняет историю.
- */
 class AiGatewayService
 {
     private string $aiUrl;
@@ -32,7 +23,7 @@ class AiGatewayService
         private readonly PolicySearchService $policyService
     ) {
         $this->aiUrl = rtrim(config('ai.url', 'http://127.0.0.1:8095'), '/');
-        $this->timeout = config('ai.timeout', 120);
+        $this->timeout = (int) config('ai.timeout', 120);
     }
 
     /**
@@ -45,16 +36,10 @@ class AiGatewayService
     ): array {
         $startTime = microtime(true);
 
-        // Сохраняем сообщение пользователя
         $userMessage = $conversation->addMessage('user', $message);
-
-        // Определяем intent
         $intent = $this->detectIntent($message);
-
-        // Собираем контекст
         $context = $this->buildContext($employee, $conversation, $message, $intent);
 
-        // Формируем запрос к AI
         $payload = [
             'context' => [
                 'type' => 'employee',
@@ -70,11 +55,10 @@ class AiGatewayService
             'policies' => $context['policies'] ?? [],
         ];
 
-        // Логируем запрос
         $log = IntegrationLog::logRequest(
             IntegrationType::AiServer,
             'employee_chat',
-            ['intent' => $intent, 'message_length' => strlen($message)],
+            ['intent' => $intent, 'message_length' => mb_strlen($message)],
             auth()->id()
         );
 
@@ -85,15 +69,29 @@ class AiGatewayService
             $durationMs = (int) ((microtime(true) - $startTime) * 1000);
 
             if (!$response->successful()) {
+                $errorBody = $this->decodeResponseBody($response->body());
+
                 $log->markError("HTTP {$response->status()}", $durationMs);
 
-                return $this->handleError($conversation, 'AI сервис временно недоступен');
+                Log::error('AI chat HTTP error', [
+                    'status' => $response->status(),
+                    'body' => $errorBody,
+                    'payload' => $payload,
+                ]);
+
+                return $this->handleError(
+                    $conversation,
+                    $this->resolveAiErrorMessage($response->status(), 'chat')
+                );
             }
 
             $data = $response->json();
-            $log->markSuccess(['response_length' => strlen($data['response'] ?? '')], $durationMs);
 
-            // Сохраняем ответ AI
+            $log->markSuccess(
+                ['response_length' => mb_strlen((string) ($data['response'] ?? ''))],
+                $durationMs
+            );
+
             $aiMessage = $conversation->addMessage(
                 'assistant',
                 $data['response'] ?? 'Извините, не удалось обработать запрос',
@@ -105,16 +103,14 @@ class AiGatewayService
                 ]
             );
 
-            // Обновляем intent сообщения пользователя
             $userMessage->update(['intent' => $intent]);
 
-            // Логируем аудит
             AuditLog::logAiQuery($message, $data);
 
             return [
                 'success' => true,
                 'message' => $aiMessage,
-                'response' => $data['response'],
+                'response' => $data['response'] ?? '',
                 'intent' => $intent,
                 'confidence' => $data['confidence'] ?? null,
                 'sources' => $data['sources'] ?? [],
@@ -123,14 +119,20 @@ class AiGatewayService
             $durationMs = (int) ((microtime(true) - $startTime) * 1000);
             $log->markTimeout($durationMs);
 
-            Log::error('AI Gateway timeout', ['error' => $e->getMessage()]);
+            Log::error('AI Gateway timeout', [
+                'error' => $e->getMessage(),
+                'payload' => $payload,
+            ]);
 
             return $this->handleError($conversation, 'Превышено время ожидания ответа');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $durationMs = (int) ((microtime(true) - $startTime) * 1000);
             $log->markError($e->getMessage(), $durationMs);
 
-            Log::error('AI Gateway error', ['error' => $e->getMessage()]);
+            Log::error('AI Gateway error', [
+                'error' => $e->getMessage(),
+                'payload' => $payload,
+            ]);
 
             return $this->handleError($conversation, 'Произошла ошибка при обработке запроса');
         }
@@ -142,13 +144,14 @@ class AiGatewayService
     public function explainKpi(EmployeeProfile $employee, array $kpiData): array
     {
         $startTime = microtime(true);
+        $normalizedKpiData = $this->normalizeKpiDataForAi($kpiData);
 
         $payload = [
             'context' => [
                 'type' => 'employee',
                 'operation' => 'kpi_explain',
             ],
-            'kpi_data' => $kpiData,
+            'kpi_data' => $normalizedKpiData,
             'employee' => [
                 'department' => $employee->department,
                 'position' => $employee->position,
@@ -158,7 +161,7 @@ class AiGatewayService
         $log = IntegrationLog::logRequest(
             IntegrationType::AiServer,
             'kpi_explain',
-            ['metrics_count' => count($kpiData['metrics'] ?? [])],
+            ['metrics_count' => count($normalizedKpiData['metrics'] ?? [])],
             auth()->id()
         );
 
@@ -169,8 +172,20 @@ class AiGatewayService
             $durationMs = (int) ((microtime(true) - $startTime) * 1000);
 
             if (!$response->successful()) {
+                $errorBody = $this->decodeResponseBody($response->body());
+
                 $log->markError("HTTP {$response->status()}", $durationMs);
-                return ['success' => false, 'error' => 'AI сервис недоступен'];
+
+                Log::error('AI explain HTTP error', [
+                    'status' => $response->status(),
+                    'body' => $errorBody,
+                    'payload' => $payload,
+                ]);
+
+                return [
+                    'success' => false,
+                    'error' => $this->resolveAiErrorMessage($response->status(), 'explain'),
+                ];
             }
 
             $data = $response->json();
@@ -183,11 +198,32 @@ class AiGatewayService
                 'improvement_suggestions' => $data['improvement_suggestions'] ?? [],
                 'risk_assessment' => $data['risk_assessment'] ?? null,
             ];
-        } catch (\Exception $e) {
+        } catch (ConnectionException $e) {
+            $durationMs = (int) ((microtime(true) - $startTime) * 1000);
+            $log->markTimeout($durationMs);
+
+            Log::error('AI explain timeout', [
+                'error' => $e->getMessage(),
+                'payload' => $payload,
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'Превышено время ожидания ответа AI',
+            ];
+        } catch (\Throwable $e) {
             $durationMs = (int) ((microtime(true) - $startTime) * 1000);
             $log->markError($e->getMessage(), $durationMs);
 
-            return ['success' => false, 'error' => $e->getMessage()];
+            Log::error('AI explain error', [
+                'error' => $e->getMessage(),
+                'payload' => $payload,
+            ]);
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
         }
     }
 
@@ -197,13 +233,14 @@ class AiGatewayService
     public function getRecommendations(EmployeeProfile $employee, array $kpiData): array
     {
         $startTime = microtime(true);
+        $normalizedKpiData = $this->normalizeKpiDataForAi($kpiData);
 
         $payload = [
             'context' => [
                 'type' => 'employee',
                 'operation' => 'recommendations',
             ],
-            'kpi_data' => $kpiData,
+            'kpi_data' => $normalizedKpiData,
             'employee' => [
                 'department' => $employee->department,
                 'position' => $employee->position,
@@ -214,7 +251,7 @@ class AiGatewayService
         $log = IntegrationLog::logRequest(
             IntegrationType::AiServer,
             'get_recommendations',
-            ['total_score' => $kpiData['total_score'] ?? 0],
+            ['total_score' => $normalizedKpiData['total_score'] ?? 0],
             auth()->id()
         );
 
@@ -225,12 +262,27 @@ class AiGatewayService
             $durationMs = (int) ((microtime(true) - $startTime) * 1000);
 
             if (!$response->successful()) {
+                $errorBody = $this->decodeResponseBody($response->body());
+
                 $log->markError("HTTP {$response->status()}", $durationMs);
-                return ['success' => false, 'error' => 'AI сервис недоступен'];
+
+                Log::error('AI analyze HTTP error', [
+                    'status' => $response->status(),
+                    'body' => $errorBody,
+                    'payload' => $payload,
+                ]);
+
+                return [
+                    'success' => false,
+                    'error' => $this->resolveAiErrorMessage($response->status(), 'analyze'),
+                ];
             }
 
             $data = $response->json();
-            $log->markSuccess(['recommendations_count' => count($data['recommendations'] ?? [])], $durationMs);
+            $log->markSuccess(
+                ['recommendations_count' => count($data['recommendations'] ?? [])],
+                $durationMs
+            );
 
             return [
                 'success' => true,
@@ -238,11 +290,32 @@ class AiGatewayService
                 'priority_actions' => $data['priority_actions'] ?? [],
                 'expected_improvement' => $data['expected_improvement'] ?? null,
             ];
-        } catch (\Exception $e) {
+        } catch (ConnectionException $e) {
+            $durationMs = (int) ((microtime(true) - $startTime) * 1000);
+            $log->markTimeout($durationMs);
+
+            Log::error('AI analyze timeout', [
+                'error' => $e->getMessage(),
+                'payload' => $payload,
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'Превышено время ожидания ответа AI',
+            ];
+        } catch (\Throwable $e) {
             $durationMs = (int) ((microtime(true) - $startTime) * 1000);
             $log->markError($e->getMessage(), $durationMs);
 
-            return ['success' => false, 'error' => $e->getMessage()];
+            Log::error('AI analyze error', [
+                'error' => $e->getMessage(),
+                'payload' => $payload,
+            ]);
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
         }
     }
 
@@ -271,7 +344,7 @@ class AiGatewayService
                 'message' => "HTTP {$response->status()}",
                 'latency_ms' => $latency,
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return [
                 'healthy' => false,
                 'message' => $e->getMessage(),
@@ -282,51 +355,33 @@ class AiGatewayService
 
     // ===== PRIVATE METHODS =====
 
-    /**
-     * Определить intent сообщения
-     */
     private function detectIntent(string $message): string
     {
         $message = mb_strtolower($message);
 
-        // Паттерны для определения намерения (русский + узбекский)
         $patterns = [
-            // Приветствия (высокий приоритет)
             'greeting' => ['привет', 'здравствуй', 'добрый день', 'добрый вечер', 'салом', 'ассалому', 'hello', 'hi'],
             'help' => ['помощь', 'помоги', 'что умеешь', 'что можешь', 'ёрдам', 'yordam', 'help'],
 
-            // Отпуска
             'leave_balance' => ['остаток отпуск', 'сколько дней', 'дней отпуска', 'таътил қолди', 'неча кун таътил'],
             'leave_request' => ['отпуск', 'отгул', 'выходн', 'больничн', 'отсутств', 'таътил'],
 
-            // KPI
             'kpi_explain' => ['почему kpi', 'почему низк', 'объясни kpi', 'разъясни', 'нега kpi паст'],
             'kpi_question' => ['kpi', 'кпи', 'показател', 'эффективност', 'результат', 'самарадорлик'],
 
-            // Финансы
             'bonus_inquiry' => ['бонус', 'премия', 'премии', 'мукофот', 'bonus'],
             'salary_question' => ['зарплат', 'оклад', 'маош', 'ойлик', 'salary'],
 
-            // Дисциплина
             'discipline_question' => ['дисциплин', 'выговор', 'взыскан', 'штраф', 'нарушен', 'интизом', 'жарима', 'огоҳлантириш'],
-
-            // Признание
             'recognition_question' => ['признан', 'награ', 'достижен', 'благодарн', 'поощрен', 'эътироф', 'ютуқ'],
 
-            // Обучение
             'training_question' => ['обучен', 'курс', 'тренинг', 'сертификат', 'экзамен', 'ўқиш'],
-
-            // График
             'schedule_question' => ['график работ', 'расписан', 'смен', 'рабоч врем', 'иш вақт', 'жадвал'],
-
-            // Льготы
             'benefits_question' => ['льгот', 'соцпакет', 'медицин страхов', 'дмс', 'корпоратив', 'имтиёз'],
 
-            // Политики
             'policy_search' => ['политик', 'регламент', 'правил', 'порядок', 'процедур', 'сиёсат', 'қоида'],
         ];
 
-        // Приоритетный порядок проверки
         $priorityOrder = [
             'greeting', 'help',
             'leave_balance', 'leave_request',
@@ -338,7 +393,9 @@ class AiGatewayService
         ];
 
         foreach ($priorityOrder as $intent) {
-            if (!isset($patterns[$intent])) continue;
+            if (!isset($patterns[$intent])) {
+                continue;
+            }
 
             foreach ($patterns[$intent] as $keyword) {
                 if (mb_strpos($message, $keyword) !== false) {
@@ -350,9 +407,6 @@ class AiGatewayService
         return 'general';
     }
 
-    /**
-     * Собрать контекст для AI
-     */
     private function buildContext(
         EmployeeProfile $employee,
         EmployeeAiConversation $conversation,
@@ -364,8 +418,7 @@ class AiGatewayService
             'policies' => [],
         ];
 
-        // Добавляем KPI факты для релевантных intents
-        if (in_array($intent, ['kpi_question', 'kpi_explain', 'bonus_inquiry', 'salary_question'])) {
+        if (in_array($intent, ['kpi_question', 'kpi_explain', 'bonus_inquiry', 'salary_question'], true)) {
             $kpiSnapshot = $this->kpiClient->getOrFetchSnapshot($employee, 'month');
 
             if ($kpiSnapshot) {
@@ -377,14 +430,12 @@ class AiGatewayService
                 ];
             }
 
-            // Тренд
             $trend = $this->kpiClient->getKpiTrend($employee, 3);
             if (!empty($trend)) {
                 $context['facts']['kpi_trend'] = $trend;
             }
         }
 
-        // Добавляем данные о дисциплине
         if ($intent === 'discipline_question') {
             $disciplineActions = $employee->disciplinaryActions()
                 ->active()
@@ -393,7 +444,7 @@ class AiGatewayService
 
             $context['facts']['discipline'] = [
                 'active_count' => $disciplineActions->count(),
-                'actions' => $disciplineActions->map(fn($a) => [
+                'actions' => $disciplineActions->map(fn ($a) => [
                     'type' => $a->type_label,
                     'status' => $a->status_label,
                     'date' => $a->action_date->format('d.m.Y'),
@@ -401,31 +452,109 @@ class AiGatewayService
             ];
         }
 
-        // Добавляем данные о признании
         if ($intent === 'recognition_question') {
             $context['facts']['recognition'] = [
                 'total_points' => $employee->recognition_points ?? 0,
-                // Можно добавить историю наград
             ];
         }
 
-        // Добавляем политики для релевантных intents
         $policyIntents = [
             'leave_request', 'leave_balance', 'policy_search', 'general',
             'discipline_question', 'training_question', 'benefits_question',
         ];
 
-        if (in_array($intent, $policyIntents)) {
-            $policies = $this->policyService->getPolicyContextForAi($message);
-            $context['policies'] = $policies;
+        if (in_array($intent, $policyIntents, true)) {
+            $context['policies'] = $this->policyService->getPolicyContextForAi($message);
         }
 
         return $context;
     }
 
-    /**
-     * Обработать ошибку
-     */
+    private function normalizeKpiDataForAi(array $kpiData): array
+    {
+        $metrics = collect($kpiData['metrics'] ?? [])
+            ->mapWithKeys(function ($value, $key) {
+                return [$key => $this->normalizeMetric((string) $key, $value)];
+            })
+            ->toArray();
+
+        $lowMetricsInput = $kpiData['low_metrics'] ?? null;
+        $lowMetrics = [];
+
+        if (is_array($lowMetricsInput) && array_is_list($lowMetricsInput)) {
+            foreach ($lowMetricsInput as $metricKey) {
+                if (isset($metrics[$metricKey])) {
+                    $lowMetrics[$metricKey] = $metrics[$metricKey];
+                }
+            }
+        } elseif (is_array($lowMetricsInput)) {
+            foreach ($lowMetricsInput as $metricKey => $metricValue) {
+                $lowMetrics[$metricKey] = $this->normalizeMetric((string) $metricKey, $metricValue);
+            }
+        }
+
+        if (empty($lowMetrics)) {
+            foreach ($metrics as $metricKey => $metricData) {
+                if (($metricData['completion'] ?? 100) < 70) {
+                    $lowMetrics[$metricKey] = $metricData;
+                }
+            }
+        }
+
+        return [
+            ...$kpiData,
+            'metrics' => $metrics,
+            'low_metrics' => $lowMetrics,
+        ];
+    }
+
+    private function normalizeMetric(string $metricKey, mixed $metricValue): array
+    {
+        if (is_array($metricValue)) {
+            $completion = $metricValue['completion']
+                ?? $metricValue['score']
+                ?? $metricValue['value']
+                ?? $metricValue['current']
+                ?? $metricValue['percent']
+                ?? 0;
+
+            return [
+                ...$metricValue,
+                'name' => $metricValue['name'] ?? $this->makeMetricName($metricKey),
+                'completion' => (float) $completion,
+            ];
+        }
+
+        return [
+            'name' => $this->makeMetricName($metricKey),
+            'completion' => is_numeric($metricValue) ? (float) $metricValue : 0.0,
+        ];
+    }
+
+    private function makeMetricName(string $metricKey): string
+    {
+        return str($metricKey)
+            ->replace('_', ' ')
+            ->title()
+            ->toString();
+    }
+
+    private function resolveAiErrorMessage(int $status, string $operation): string
+    {
+        return match ($status) {
+            400, 422 => "AI вернул ошибку валидации для {$operation}",
+            500, 502, 503, 504 => 'AI сервис временно недоступен',
+            default => 'Ошибка при обращении к AI',
+        };
+    }
+
+    private function decodeResponseBody(string $body): mixed
+    {
+        $decoded = json_decode($body, true);
+
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : $body;
+    }
+
     private function handleError(EmployeeAiConversation $conversation, string $errorMessage): array
     {
         $message = $conversation->addMessage(
