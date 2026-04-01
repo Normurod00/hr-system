@@ -7,13 +7,10 @@ use App\Enums\ApplicationStatus;
 use App\Models\Application;
 use App\Models\ApplicationAnalysis;
 use App\Models\ApplicationFile;
-use App\Models\AiLog;
-use App\Models\CandidateProfile;
 use App\Models\Vacancy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-use Carbon\Carbon;
 
 class AnalyticsController extends Controller
 {
@@ -124,10 +121,13 @@ class AnalyticsController extends Controller
         }
 
         // === Top vacancies by applications ===
-        $topVacancies = Vacancy::withCount(['applications', 'applications as analyzed_count' => function ($q) {
-                $q->whereNotNull('match_score');
-            }])
-            ->having('applications_count', '>', 0)
+        $topVacancies = Vacancy::has('applications')
+            ->withCount([
+                'applications',
+                'applications as analyzed_count' => function ($q) {
+                    $q->whereNotNull('match_score');
+                }
+            ])
             ->orderByDesc('applications_count')
             ->limit(10)
             ->get()
@@ -135,7 +135,10 @@ class AnalyticsController extends Controller
                 'title' => $v->title,
                 'applications' => $v->applications_count,
                 'analyzed' => $v->analyzed_count,
-                'avg_score' => round($v->applications()->whereNotNull('match_score')->avg('match_score') ?? 0, 1),
+                'avg_score' => round(
+                    $v->applications()->whereNotNull('match_score')->avg('match_score') ?? 0,
+                    1
+                ),
             ]);
 
         // === Conversion Funnel ===
