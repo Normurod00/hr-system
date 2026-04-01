@@ -29,15 +29,24 @@ class CandidateAuthController extends Controller
 
         $user = Auth::user();
 
-        // Проверяем что пользователь - кандидат
+        // Если пользователь не кандидат — перенаправляем на правильную форму
         if ($user->role !== \App\Enums\UserRole::Candidate) {
+            // Не разлогиниваем — просто редиректим на нужную страницу
+            if ($user->role->hasAdminAccess()) {
+                return redirect()->route('admin.dashboard');
+            }
+
+            if ($user->role->isEmployee()) {
+                return redirect()->route('employee.dashboard');
+            }
+
+            // Fallback — разлогинить и показать ошибку
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('candidate.login')->withErrors([
-                'email' => 'Этот аккаунт не является аккаунтом кандидата. Используйте вход для сотрудников.',
-            ]);
+            return redirect()->route('login')
+                ->with('info', 'Вы вошли как сотрудник. Используйте форму для сотрудников.');
         }
 
         return redirect()->intended(route('vacant.index'))

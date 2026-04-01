@@ -352,9 +352,10 @@
             <table class="table">
                 <thead><tr><th>Операция</th><th style="text-align:center">Всего</th><th style="text-align:center">OK</th><th style="text-align:center">Ошибки</th><th style="text-align:right">Время</th></tr></thead>
                 <tbody>
+                @php $opLabels = ['parse_resume'=>'Парсинг резюме','parse_file'=>'Парсинг файла','analyze'=>'Анализ кандидата','match_score'=>'Совместимость','generate_questions'=>'Генерация вопросов','build_profile'=>'Построение профиля']; @endphp
                 @forelse($aiOpsStats as $op)
                 <tr>
-                    <td><strong>{{ $op->operation }}</strong></td>
+                    <td><strong>{{ $opLabels[$op->operation] ?? $op->operation }}</strong></td>
                     <td style="text-align:center">{{ $op->total }}</td>
                     <td style="text-align:center; color: #16a34a; font-weight: 700;">{{ $op->success }}</td>
                     <td style="text-align:center; {{ $op->errors > 0 ? 'color:#dc2626;font-weight:700;' : 'color:var(--fg-3);' }}">{{ $op->errors }}</td>

@@ -29,8 +29,13 @@ class EmployeeAuthController extends Controller
 
         $user = Auth::user();
 
-        // Проверяем что пользователь - сотрудник
+        // Если пользователь не сотрудник — перенаправляем на правильную форму
         if (!$user->role->isEmployee()) {
+            // Кандидат попал на форму сотрудника — редиректим
+            if ($user->role === \App\Enums\UserRole::Candidate) {
+                return redirect()->route('vacant.index');
+            }
+
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
