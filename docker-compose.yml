@@ -1,8 +1,4 @@
-#version: "3.9"
-# volume lis
-# ls -la /var/lib/docker/volumes/
 services:
-  # ── Laravel PHP-FPM ──
   app:
     build:
       context: .
@@ -20,34 +16,38 @@ services:
       redis:
         condition: service_started
     environment:
-      - DB_HOST=db
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - HR_AI_URL=http://ai:8095
+      DB_HOST: db
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      HR_AI_URL: http://ai:8095
     networks:
       - hr-net
 
-  # ── Queue Worker + Scheduler ──
-worker:
-  build:
-    context: .
-    dockerfile: docker/php/Dockerfile
-  container_name: hr-worker
-  working_dir: /opt/hr-system
-  restart: unless-stopped
-  command: supervisord -c /etc/supervisor/conf.d/supervisord.conf -n
-  volumes:
-    - ./:/opt/hr-system
-  depends_on:
-    - app
-  environment:
-    - DB_HOST=db
-    - REDIS_HOST=redis
-    - REDIS_PASSWORD=${REDIS_PASSWORD}
-    - HR_AI_URL=http://ai:8095
-  networks:
-    - hr-net
-  # ── AI Server (FastAPI) ──
+  worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: hr-worker
+    working_dir: /opt/hr-system
+    restart: unless-stopped
+    command: supervisord -c /etc/supervisor/conf.d/supervisord.conf -n
+    volumes:
+      - ./:/opt/hr-system
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      app:
+        condition: service_started
+    environment:
+      DB_HOST: db
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      HR_AI_URL: http://ai:8095
+    networks:
+      - hr-net
+
   ai:
     build:
       context: .
@@ -59,7 +59,7 @@ worker:
     volumes:
       - ./ai_server/config.yaml:/app/config.yaml
     environment:
-      - PYTHONUNBUFFERED=1
+      PYTHONUNBUFFERED: "1"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8095/health')"]
       interval: 30s
@@ -68,7 +68,6 @@ worker:
     networks:
       - hr-net
 
-  # ── PostgreSQL ──
   db:
     image: postgres:16-alpine
     container_name: hr-db
@@ -80,14 +79,13 @@ worker:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-hr_brb}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - hr-net
 
-  # ── Redis ──
   redis:
     image: redis:7-alpine
     container_name: hr-redis
@@ -99,7 +97,7 @@ worker:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
     networks:
       - hr-net
 
