@@ -234,34 +234,85 @@
 
     function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 
-    async function explainKpi(snapshotId) {
-        const modal = new bootstrap.Modal(document.getElementById('explainModal'));
-        const content = document.getElementById('explainContent');
-        content.innerHTML = '<div class="text-center py-5"><div class="spinner-border" style="color:var(--accent);"></div><p class="mt-3" style="color:var(--fg-3);">Анализирую...</p></div>';
-        modal.show();
+async function explainKpi(snapshotId) {
+    const modal = new bootstrap.Modal(document.getElementById('explainModal'));
+    const content = document.getElementById('explainContent');
 
-        try {
-            const res = await fetch(`/employee/kpi/${snapshotId}/explain`, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' },
-            });
-            const data = await res.json();
-            if (data.success) {
-                content.innerHTML = `
-                    <div style="margin-bottom:20px;">
-                        <h6 style="color:var(--accent);font-weight:700;"><i class="fa-solid fa-comment-dots me-2"></i>Объяснение</h6>
-                        <p style="line-height:1.6;">${escapeHtml(data.explanation || '')}</p>
-                    </div>
-                    ${data.metric_explanations ? `<div style="margin-bottom:20px;"><h6 style="color:var(--accent);font-weight:700;"><i class="fa-solid fa-list-check me-2"></i>По показателям</h6>
-                        ${Object.entries(data.metric_explanations).map(([k,v]) => `<div style="padding:10px 14px;background:rgba(0,0,0,0.02);border-radius:10px;margin-bottom:8px;"><strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}</div>`).join('')}
-                    </div>` : ''}
-                    ${data.improvement_suggestions?.length ? `<div><h6 style="color:var(--accent);font-weight:700;"><i class="fa-solid fa-lightbulb me-2"></i>Рекомендации</h6>
-                        <ul style="margin:0;padding-left:20px;">${data.improvement_suggestions.map(s => `<li style="margin-bottom:6px;">${escapeHtml(s)}</li>`).join('')}</ul>
-                    </div>` : ''}`;
-            } else throw new Error(data.error);
-        } catch (e) {
-            content.innerHTML = '<div class="alert alert-danger" style="border-radius:12px;"><i class="fa-solid fa-exclamation-triangle me-2"></i>Ошибка загрузки</div>';
+    content.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border" style="color:var(--accent);"></div>
+            <p class="mt-3" style="color:var(--fg-3);">Анализирую...</p>
+        </div>
+    `;
+
+    modal.show();
+
+    try {
+        const res = await fetch(`/kpi/${snapshotId}/explain`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('KPI explain request failed:', res.status, errorText);
+            throw new Error(`HTTP ${res.status}`);
         }
+
+        const data = await res.json();
+
+        if (!data.success) {
+            console.error('KPI explain response error:', data);
+            throw new Error(data.error || 'Ошибка ответа сервера');
+        }
+
+        content.innerHTML = `
+            <div style="margin-bottom:20px;">
+                <h6 style="color:var(--accent);font-weight:700;">
+                    <i class="fa-solid fa-comment-dots me-2"></i>Объяснение
+                </h6>
+                <p style="line-height:1.6;">${escapeHtml(data.explanation || '')}</p>
+            </div>
+
+            ${data.metric_explanations && Object.keys(data.metric_explanations).length ? `
+                <div style="margin-bottom:20px;">
+                    <h6 style="color:var(--accent);font-weight:700;">
+                        <i class="fa-solid fa-list-check me-2"></i>По показателям
+                    </h6>
+                    ${Object.entries(data.metric_explanations).map(([k, v]) => `
+                        <div style="padding:10px 14px;background:rgba(0,0,0,0.02);border-radius:10px;margin-bottom:8px;">
+                            <strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+
+            ${data.improvement_suggestions?.length ? `
+                <div>
+                    <h6 style="color:var(--accent);font-weight:700;">
+                        <i class="fa-solid fa-lightbulb me-2"></i>Рекомендации
+                    </h6>
+                    <ul style="margin:0;padding-left:20px;">
+                        ${data.improvement_suggestions.map(s => `
+                            <li style="margin-bottom:6px;">${escapeHtml(s)}</li>
+                        `).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        `;
+    } catch (e) {
+        console.error('explainKpi error:', e);
+        content.innerHTML = `
+            <div class="alert alert-danger" style="border-radius:12px;">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                Ошибка загрузки
+            </div>
+        `;
     }
+}
 </script>
 @endpush
