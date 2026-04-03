@@ -10,6 +10,7 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
+        channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
     ->withSchedule(function (Schedule $schedule): void {
@@ -35,11 +36,21 @@ return Application::configure(basePath: dirname(__DIR__))
             'employee' => \App\Http\Middleware\EnsureUserIsEmployee::class,
             'employee.role' => \App\Http\Middleware\CheckEmployeeRole::class,
             'audit' => \App\Http\Middleware\AuditEmployeeAction::class,
+            // Security middleware
+            '2fa' => \App\Http\Middleware\Enforce2FA::class,
+            'trusted-ip' => \App\Http\Middleware\CheckTrustedIp::class,
+            'password-policy' => \App\Http\Middleware\EnforcePasswordPolicy::class,
+        ]);
+
+        // Global middleware for locale
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
         ]);
 
         // CSRF исключения только для API и webhook маршрутов
         $middleware->validateCsrfTokens(except: [
             'api/*',
+            'admin/meetings/*/leave', // sendBeacon при закрытии вкладки не может отправить CSRF-заголовок
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

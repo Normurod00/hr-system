@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('pin', 20)->nullable()->unique()->after('phone')->comment('ИНН/ПИНФЛ пользователя');
             $table->string('oneid_id', 100)->nullable()->unique()->after('pin')->comment('ID пользователя в ONE ID');
-            $table->string('eri_serial', 100)->nullable()->after('oneid_id')->comment('Серийный номер ERI сертификата');
-            $table->string('last_login_method', 20)->nullable()->after('eri_serial')->comment('Последний способ входа: password, eri, oneid');
+            $table->string('last_login_method', 20)->nullable()->after('oneid_id')->comment('Последний способ входа: password, oneid');
         });
     }
 
@@ -25,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['pin', 'oneid_id', 'eri_serial', 'last_login_method']);
+            $table->dropColumn(['pin', 'oneid_id', 'last_login_method']);
         });
     }
 };

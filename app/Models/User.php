@@ -13,12 +13,21 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /**
+     * The channel to receive broadcast notifications on.
+     */
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'notifications.' . $this->id;
+    }
+
     protected $fillable = [
         'name',
         'email',
         'password',
         'phone',
         'avatar',
+        'preferred_locale',
         'notification_preferences',
     ];
 
@@ -42,6 +51,11 @@ class User extends Authenticatable
     }
 
     // ========== Relationships ==========
+
+    public function twoFactorSetting(): HasOne
+    {
+        return $this->hasOne(\App\Models\Security\UserTwoFactorSetting::class);
+    }
 
     public function applications(): HasMany
     {

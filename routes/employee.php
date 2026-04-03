@@ -65,6 +65,18 @@ Route::name('employee.')->group(function () {
                 ->name('close');
         });
 
+        // ===== STAFF CHAT (с HR) =====
+        Route::prefix('staff-chat')->name('staff-chat.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Employee\StaffChatController::class, 'index'])
+                ->name('index');
+            Route::get('{chat}', [\App\Http\Controllers\Employee\StaffChatController::class, 'show'])
+                ->name('show');
+            Route::post('{chat}/send', [\App\Http\Controllers\Employee\StaffChatController::class, 'sendMessage'])
+                ->name('send');
+            Route::get('{chat}/messages', [\App\Http\Controllers\Employee\StaffChatController::class, 'getMessages'])
+                ->name('messages');
+        });
+
         // ===== KPI =====
         Route::prefix('kpi')->name('kpi.')->group(function () {
             Route::get('/', [EmployeeKpiController::class, 'index'])

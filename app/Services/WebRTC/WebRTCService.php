@@ -7,6 +7,7 @@ use App\Models\VideoMeeting;
 use App\Models\WebRtcSignal;
 use App\Models\VideoMeetingParticipant;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class WebRTCService
 {
@@ -15,7 +16,7 @@ class WebRTCService
      */
     public function getIceServers(): array
     {
-        return [
+        $servers = [
             [
                 'urls' => [
                     'stun:stun.l.google.com:19302',
@@ -23,6 +24,29 @@ class WebRTCService
                 ],
             ],
         ];
+
+        // TURN сервер для работы за NAT/файрволами
+        if (config('services.turn.url')) {
+            $servers[] = [
+                'urls' => config('services.turn.url'),
+                'username' => config('services.turn.username', ''),
+                'credential' => config('services.turn.credential', ''),
+            ];
+        } else {
+            // Бесплатные TURN серверы OpenRelay (для разработки/тестирования)
+            $servers[] = [
+                'urls' => 'turn:openrelay.metered.ca:80',
+                'username' => 'openrelayproject',
+                'credential' => 'openrelayproject',
+            ];
+            $servers[] = [
+                'urls' => 'turn:openrelay.metered.ca:443',
+                'username' => 'openrelayproject',
+                'credential' => 'openrelayproject',
+            ];
+        }
+
+        return $servers;
     }
 
     /**
@@ -50,17 +74,21 @@ class WebRTCService
      */
     public function getPendingSignals(VideoMeeting $meeting, User $user): Collection
     {
-        $signals = WebRtcSignal::forMeeting($meeting->id)
-            ->forRecipient($user->id)
-            ->where('sender_id', '!=', $user->id)
-            ->unprocessed()
-            ->orderBy('created_at')
-            ->get();
+        return DB::transaction(function () use ($meeting, $user) {
+            $signals = WebRtcSignal::forMeeting($meeting->id)
+                ->forRecipient($user->id)
+                ->where('sender_id', '!=', $user->id)
+                ->unprocessed()
+                ->orderBy('created_at')
+                ->lockForUpdate()
+                ->get();
 
-        // Помечаем как обработанные
-        WebRtcSignal::whereIn('id', $signals->pluck('id'))->update(['processed' => true]);
+            if ($signals->isNotEmpty()) {
+                WebRtcSignal::whereIn('id', $signals->pluck('id'))->update(['processed' => true]);
+            }
 
-        return $signals;
+            return $signals;
+        });
     }
 
     /**

@@ -101,6 +101,21 @@
                 @endif
             </a>
 
+            {{-- Staff Chat --}}
+            @php
+                $staffUnread = \App\Models\StaffChat::where('hr_id', auth()->id())
+                    ->withCount(['messages as unread' => fn($q) => $q->where('sender_id', '!=', auth()->id())->whereNull('read_at')])
+                    ->get()->sum('unread');
+            @endphp
+            <a class="ui-menu__item {{ request()->routeIs('admin.staff-chat.*') ? 'is-active' : '' }}"
+               href="{{ route('admin.staff-chat.index') }}" data-tooltip="Чаты с сотрудниками">
+                <i class="fa-solid fa-user-group"></i>
+                <span>Чаты с сотрудниками</span>
+                @if($staffUnread > 0)
+                    <span class="ui-menu__badge">{{ $staffUnread }}</span>
+                @endif
+            </a>
+
             {{-- Video Meetings --}}
             @php
                 $upcomingMeetings = \App\Models\VideoMeeting::where('status', 'scheduled')

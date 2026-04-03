@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\Meeting\MeetingEnded;
+use App\Events\Meeting\ParticipantJoined;
+use App\Events\Meeting\ParticipantLeft;
+use App\Events\Meeting\WebRtcSignalReceived;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\VideoMeeting;
@@ -77,6 +81,7 @@ class VideoMeetingController extends Controller
             'description' => 'nullable|string|max:1000',
             'scheduled_at' => 'required|date|after:now',
             'duration_minutes' => 'required|integer|min:15|max:180',
+            'max_participants' => 'nullable|integer|min:2|max:10',
             'application_id' => 'nullable|exists:applications,id',
             'participants' => 'required|array|min:1',
             'participants.*' => 'exists:users,id',
@@ -87,6 +92,7 @@ class VideoMeetingController extends Controller
             'description' => $validated['description'] ?? null,
             'scheduled_at' => $validated['scheduled_at'],
             'duration_minutes' => $validated['duration_minutes'],
+            'max_participants' => $validated['max_participants'] ?? 6,
             'application_id' => $validated['application_id'] ?? null,
             'created_by' => auth()->id(),
             'status' => VideoMeeting::STATUS_SCHEDULED,
@@ -96,12 +102,12 @@ class VideoMeetingController extends Controller
         // Добавляем хоста как участника
         $meeting->addParticipant(auth()->user(), 'host');
 
-        // Добавляем выбранных участников
+        // Добавляем выбранных участников (HR, сотрудники)
         $meeting->addParticipants($validated['participants']);
 
         // Если есть заявка, добавляем кандидата
         if ($meeting->application_id) {
-            $candidate = Application::find($meeting->application_id)->user;
+            $candidate = Application::find($meeting->application_id)?->user;
             if ($candidate) {
                 $meeting->addParticipant($candidate, 'participant');
             }
@@ -112,9 +118,17 @@ class VideoMeetingController extends Controller
             'meeting_link' => route('admin.meetings.room', $meeting),
         ]);
 
+        // Уведомить всех приглашённых участников
+        $meeting->load('participants.user');
+        foreach ($meeting->participants as $participant) {
+            if ($participant->user_id !== auth()->id() && $participant->user) {
+                $participant->user->notify(new \App\Notifications\MeetingInvitation($meeting));
+            }
+        }
+
         return redirect()
             ->route('admin.meetings.index')
-            ->with('success', 'Видеовстреча успешно создана');
+            ->with('success', 'Видеовстреча успешно создана. Участники получили уведомления.');
     }
 
     /**
@@ -210,18 +224,25 @@ class VideoMeetingController extends Controller
     {
         $user = auth()->user();
 
-        // Проверяем доступ
+        // Проверяем доступ — только приглашённые участники
         if (!$meeting->canJoin($user)) {
-            abort(403, 'У вас нет доступа к этой встрече');
+            if (in_array($meeting->status, [VideoMeeting::STATUS_COMPLETED, VideoMeeting::STATUS_CANCELLED])) {
+                return redirect()->route('admin.meetings.show', $meeting)
+                    ->with('error', 'Встреча уже завершена или отменена');
+            }
+            abort(403, 'У вас нет доступа к этой встрече. Только приглашённые участники могут присоединиться.');
         }
 
-        // Если встреча не начата — начинаем
-        if ($meeting->status === VideoMeeting::STATUS_SCHEDULED) {
+        // Если встреча не начата — начинаем (только хост)
+        if ($meeting->status === VideoMeeting::STATUS_SCHEDULED && $meeting->isHost($user)) {
             $this->webrtcService->startMeeting($meeting);
         }
 
         // Присоединяем пользователя
         $participant = $this->webrtcService->joinMeeting($meeting, $user);
+
+        // Broadcast participant joined
+        broadcast(new ParticipantJoined($meeting->id, $user->id, $user->name))->toOthers();
 
         $meeting->load(['createdBy', 'participants.user']);
 
@@ -236,7 +257,7 @@ class VideoMeetingController extends Controller
     public function sendSignal(Request $request, VideoMeeting $meeting): JsonResponse
     {
         $validated = $request->validate([
-            'type' => 'required|in:offer,answer,ice-candidate,renegotiate',
+            'type' => 'required|in:offer,answer,ice-candidate,renegotiate,join-request',
             'data' => 'required|array',
             'recipient_id' => 'nullable|integer',
         ]);
@@ -254,6 +275,9 @@ class VideoMeetingController extends Controller
             $validated['data'],
             $validated['recipient_id'] ?? null
         );
+
+        // Broadcast signal via WebSocket (instant delivery, no queue)
+        broadcast(new WebRtcSignalReceived($signal))->toOthers();
 
         return response()->json(['success' => true, 'signal_id' => $signal->id]);
     }
@@ -315,6 +339,10 @@ class VideoMeetingController extends Controller
 
         $this->webrtcService->leaveMeeting($meeting, $user);
 
+        if ($user) {
+            broadcast(new ParticipantLeft($meeting->id, $user->id, $user->name))->toOthers();
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -330,6 +358,8 @@ class VideoMeetingController extends Controller
         }
 
         $this->webrtcService->endMeeting($meeting);
+
+        broadcast(new MeetingEnded($meeting->id));
 
         return response()->json(['success' => true]);
     }

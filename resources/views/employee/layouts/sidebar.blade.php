@@ -1,90 +1,129 @@
-<aside class="employee-sidebar">
-    <div class="sidebar-header">
-        <div class="sidebar-logo">HR</div>
-        <div>
-            <div class="sidebar-title">HR Portal</div>
-            <div class="sidebar-subtitle">Для сотрудников</div>
+{{-- Employee Sidebar — same design system as admin --}}
+<aside id="sidebar" class="ui-sidebar" aria-label="Sidebar">
+    <div id="sidebarOverlay" class="ui-sidebar__overlay" hidden></div>
+
+    <div class="ui-sidebar__content">
+        <div class="ui-sidebar__head">
+            <a href="{{ route('employee.dashboard') }}" class="brand">
+                <span class="brand__logo">HR</span>
+                <span class="brand__title">HR Portal</span>
+            </a>
+
+            <button id="sidebarToggleRail" class="ui-toggle" type="button" aria-label="Свернуть/развернуть">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
         </div>
-    </div>
 
-    <nav class="sidebar-nav">
-        <div class="nav-section-title">Основное</div>
+        <nav class="ui-menu">
+            <div class="ui-menu__section">Основное</div>
 
-        <a href="{{ route('employee.dashboard') }}" class="nav-link {{ request()->routeIs('employee.dashboard') ? 'active' : '' }}">
-            <i class="bi bi-house"></i>
-            <span>Главная</span>
-        </a>
+            <a class="ui-menu__item {{ request()->routeIs('employee.dashboard') ? 'is-active' : '' }}"
+               href="{{ route('employee.dashboard') }}" data-tooltip="Главная">
+                <i class="fa-solid fa-house"></i>
+                <span>Главная</span>
+            </a>
 
-        <a href="{{ route('employee.chat.index') }}" class="nav-link {{ request()->routeIs('employee.chat.*') ? 'active' : '' }}">
-            <i class="bi bi-chat-dots"></i>
-            <span>AI Ассистент</span>
-            @if(($unreadCount ?? 0) > 0)
-                <span class="nav-badge">{{ $unreadCount }}</span>
-            @endif
-        </a>
+            <a class="ui-menu__item {{ request()->routeIs('employee.chat.*') ? 'is-active' : '' }}"
+               href="{{ route('employee.chat.index') }}" data-tooltip="AI Ассистент">
+                <i class="fa-solid fa-robot"></i>
+                <span>AI Ассистент</span>
+            </a>
 
-        <a href="{{ route('employee.kpi.index') }}" class="nav-link {{ request()->routeIs('employee.kpi.*') ? 'active' : '' }}">
-            <i class="bi bi-graph-up"></i>
-            <span>Мои KPI</span>
-        </a>
+            <a class="ui-menu__item {{ request()->routeIs('employee.kpi.*') ? 'is-active' : '' }}"
+               href="{{ route('employee.kpi.index') }}" data-tooltip="Мои KPI">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Мои KPI</span>
+            </a>
 
-        <a href="{{ route('employee.recognition.index') }}" class="nav-link {{ request()->routeIs('employee.recognition.*') ? 'active' : '' }}">
-            <i class="bi bi-award"></i>
-            <span>Эътироф</span>
-        </a>
+            <a class="ui-menu__item {{ request()->routeIs('employee.documents.*') ? 'is-active' : '' }}"
+               href="{{ route('employee.documents.index') }}" data-tooltip="Мои документы">
+                <i class="fa-solid fa-file-shield"></i>
+                <span>Мои документы</span>
+            </a>
 
-        <a href="{{ route('employee.discipline.index') }}" class="nav-link {{ request()->routeIs('employee.discipline.*') ? 'active' : '' }}">
-            <i class="bi bi-file-earmark-text"></i>
-            <span>Интизом</span>
-        </a>
+            {{-- Staff Chat --}}
+            @php
+                $empStaffUnread = \App\Models\StaffChat::where('employee_id', auth()->id())
+                    ->withCount(['messages as unread' => fn($q) => $q->where('sender_id', '!=', auth()->id())->whereNull('read_at')])
+                    ->get()->sum('unread');
+            @endphp
+            <a class="ui-menu__item {{ request()->routeIs('employee.staff-chat.*') ? 'is-active' : '' }}"
+               href="{{ route('employee.staff-chat.index') }}" data-tooltip="Чат с HR">
+                <i class="fa-solid fa-comments"></i>
+                <span>Чат с HR</span>
+                @if($empStaffUnread > 0)
+                    <span class="ui-menu__badge">{{ $empStaffUnread }}</span>
+                @endif
+            </a>
 
-        <a href="{{ route('employee.documents.index') }}" class="nav-link {{ request()->routeIs('employee.documents.*') ? 'active' : '' }}">
-            <i class="bi bi-file-earmark-medical"></i>
-            <span>Мои документы</span>
-        </a>
+            <div class="ui-menu__section">Компания</div>
 
-        <div class="nav-section-title">Информация</div>
+            <a class="ui-menu__item {{ request()->routeIs('employee.recognition.*') ? 'is-active' : '' }}"
+               href="{{ route('employee.recognition.index') }}" data-tooltip="Признание">
+                <i class="fa-solid fa-award"></i>
+                <span>Признание</span>
+            </a>
 
-        <a href="{{ route('employee.policies.index') }}" class="nav-link {{ request()->routeIs('employee.policies.*') ? 'active' : '' }}">
-            <i class="bi bi-file-text"></i>
-            <span>Политики</span>
-        </a>
+            <a class="ui-menu__item {{ request()->routeIs('employee.discipline.*') ? 'is-active' : '' }}"
+               href="{{ route('employee.discipline.index') }}" data-tooltip="Дисциплина">
+                <i class="fa-solid fa-scale-balanced"></i>
+                <span>Дисциплина</span>
+            </a>
 
-        <a href="#" class="nav-link">
-            <i class="bi bi-calendar-check"></i>
-            <span>Отпуска</span>
-            <span class="nav-badge bg-secondary">Скоро</span>
-        </a>
+            <a class="ui-menu__item {{ request()->routeIs('employee.policies.*') ? 'is-active' : '' }}"
+               href="{{ route('employee.policies.index') }}" data-tooltip="Политики">
+                <i class="fa-solid fa-book"></i>
+                <span>Политики</span>
+            </a>
 
-        <a href="#" class="nav-link">
-            <i class="bi bi-currency-dollar"></i>
-            <span>Бонусы</span>
-            <span class="nav-badge bg-secondary">Скоро</span>
-        </a>
+            @if(auth()->user()->employeeProfile?->isManager())
+            <div class="ui-menu__section">Команда</div>
 
-        @if(auth()->user()->employeeProfile?->isManager())
-            <div class="nav-section-title">Команда</div>
-
-            <a href="{{ route('employee.team') }}" class="nav-link {{ request()->routeIs('employee.team*') ? 'active' : '' }}">
-                <i class="bi bi-people"></i>
+            <a class="ui-menu__item {{ request()->routeIs('employee.team*') ? 'is-active' : '' }}"
+               href="{{ route('employee.team') }}" data-tooltip="Моя команда">
+                <i class="fa-solid fa-people-group"></i>
                 <span>Моя команда</span>
             </a>
-        @endif
+            @endif
 
-        @if(auth()->user()->employeeProfile?->role?->canViewAllEmployees())
-            <div class="nav-section-title">HR</div>
+            @if(auth()->user()->employeeProfile?->role?->canViewAllEmployees())
+            <div class="ui-menu__section">HR</div>
 
-            <a href="{{ route('admin.dashboard') }}" class="nav-link">
-                <i class="bi bi-speedometer2"></i>
+            <a class="ui-menu__item" href="{{ route('admin.dashboard') }}" data-tooltip="HR Панель">
+                <i class="fa-solid fa-gauge-high"></i>
                 <span>HR Панель</span>
             </a>
-        @endif
+            @endif
+        </nav>
 
-        <div class="nav-section-title">Аккаунт</div>
+        <!-- User Footer -->
+        <div class="ui-user">
+            <button class="ui-user__btn" id="userMenuBtn" aria-expanded="false">
+                <span class="ui-user__avatar">{{ auth()->user()->initials }}</span>
+                <span class="ui-user__meta">
+                    <span class="ui-user__name">{{ auth()->user()->name }}</span>
+                    <span class="ui-user__role">{{ auth()->user()->employeeProfile?->role?->label() ?? 'Сотрудник' }}</span>
+                </span>
+                <i class="fa-solid fa-chevron-up ui-user__chev"></i>
+            </button>
 
-        <a href="{{ route('employee.settings') }}" class="nav-link {{ request()->routeIs('employee.settings') ? 'active' : '' }}">
-            <i class="bi bi-gear"></i>
-            <span>Настройки</span>
-        </a>
-    </nav>
+            <div class="ui-user__menu" id="userMenu" hidden>
+                <button class="ui-user__menu-item" onclick="toggleTheme()">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                    <span id="themeText">Тёмная тема</span>
+                </button>
+                <a class="ui-user__menu-item" href="{{ route('employee.settings') }}">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Настройки</span>
+                </a>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button class="ui-user__menu-item ui-user__logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Выход</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </aside>

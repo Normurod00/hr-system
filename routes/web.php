@@ -36,6 +36,9 @@ require __DIR__ . '/employee.php';
 | Home - перенаправление по роли
 |--------------------------------------------------------------------------
 */
+// Locale switcher
+Route::get('/locale/{locale}', [\App\Http\Controllers\LocaleController::class, 'switch'])->name('locale.switch');
+
 Route::get('/', function () {
     if (auth()->check()) {
         $user = auth()->user();
@@ -95,6 +98,11 @@ Route::middleware('auth')->group(function () {
     // Logout
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+    // Notifications API
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+
     /*
     |--------------------------------------------------------------------------
     | Candidate Routes
@@ -138,12 +146,45 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Security Routes (2FA challenge, password expired)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->prefix('security')->name('security.')->group(function () {
+    Route::get('/2fa/challenge', [\App\Http\Controllers\Admin\SecurityController::class, 'twoFactorChallenge'])->name('2fa.challenge');
+    Route::post('/2fa/verify', [\App\Http\Controllers\Admin\SecurityController::class, 'twoFactorVerify'])->name('2fa.verify');
+    Route::get('/password/expired', [\App\Http\Controllers\Admin\SecurityController::class, 'passwordExpired'])->name('password.expired');
+    Route::post('/password/update', [\App\Http\Controllers\Admin\SecurityController::class, 'updatePassword'])->name('password.update');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Admin Routes (HR & Admin only)
 |--------------------------------------------------------------------------
 */
-Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['admin', '2fa'])->prefix('admin')->name('admin.')->group(function () {
         // Dashboard
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Security settings
+        Route::prefix('security')->name('security.')->group(function () {
+            Route::get('/2fa', [\App\Http\Controllers\Admin\SecurityController::class, 'twoFactorSetup'])->name('2fa');
+            Route::post('/2fa/enable', [\App\Http\Controllers\Admin\SecurityController::class, 'twoFactorEnable'])->name('2fa.enable');
+            Route::post('/2fa/confirm', [\App\Http\Controllers\Admin\SecurityController::class, 'twoFactorConfirm'])->name('2fa.confirm');
+            Route::post('/2fa/disable', [\App\Http\Controllers\Admin\SecurityController::class, 'twoFactorDisable'])->name('2fa.disable');
+            Route::get('/trusted-ips', [\App\Http\Controllers\Admin\SecurityController::class, 'trustedIps'])->name('trusted-ips');
+            Route::post('/trusted-ips', [\App\Http\Controllers\Admin\SecurityController::class, 'storeTrustedIp'])->name('trusted-ips.store');
+            Route::delete('/trusted-ips/{ip}', [\App\Http\Controllers\Admin\SecurityController::class, 'deleteTrustedIp'])->name('trusted-ips.delete');
+            Route::get('/login-attempts', [\App\Http\Controllers\Admin\SecurityController::class, 'loginAttempts'])->name('login-attempts');
+        });
+
+        // Export PDF/Excel
+        Route::prefix('export')->name('export.')->group(function () {
+            Route::get('/candidate/{application}/pdf', [\App\Http\Controllers\Admin\ExportController::class, 'candidatePdf'])->name('candidate.pdf');
+            Route::get('/funnel/pdf', [\App\Http\Controllers\Admin\ExportController::class, 'funnelPdf'])->name('funnel.pdf');
+            Route::get('/award/{award}/certificate', [\App\Http\Controllers\Admin\ExportController::class, 'awardCertificate'])->name('award.certificate');
+            Route::get('/applications/excel', [\App\Http\Controllers\Admin\ExportController::class, 'applicationsExcel'])->name('applications.excel');
+            Route::get('/employees/excel', [\App\Http\Controllers\Admin\ExportController::class, 'employeesExcel'])->name('employees.excel');
+        });
 
         // Analytics
         Route::get('/analytics/candidates', [\App\Http\Controllers\Admin\AnalyticsController::class, 'candidates'])->name('analytics.candidates');
@@ -199,6 +240,15 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
             Route::get('/{application}/messages', [AdminChatController::class, 'getMessages'])->name('messages');
             Route::post('/{application}/meeting', [AdminChatController::class, 'createMeeting'])->name('meeting.create');
             Route::post('/meeting/{meeting}/cancel', [AdminChatController::class, 'cancelMeeting'])->name('meeting.cancel');
+        });
+
+        // Staff Chat (HR ↔ Сотрудники)
+        Route::prefix('staff-chat')->name('staff-chat.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\StaffChatController::class, 'index'])->name('index');
+            Route::get('/start/{employee}', [\App\Http\Controllers\Admin\StaffChatController::class, 'start'])->name('start');
+            Route::get('/{chat}', [\App\Http\Controllers\Admin\StaffChatController::class, 'show'])->name('show');
+            Route::post('/{chat}/send', [\App\Http\Controllers\Admin\StaffChatController::class, 'sendMessage'])->name('send');
+            Route::get('/{chat}/messages', [\App\Http\Controllers\Admin\StaffChatController::class, 'getMessages'])->name('messages');
         });
 
         // Video Meetings

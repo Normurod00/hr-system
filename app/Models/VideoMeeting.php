@@ -141,12 +141,18 @@ class VideoMeeting extends Model
 
     public function start(): bool
     {
-        return $this->update(['status' => self::STATUS_STARTED]);
+        return $this->update([
+            'status' => self::STATUS_STARTED,
+            'started_at' => now(),
+        ]);
     }
 
     public function complete(): bool
     {
-        return $this->update(['status' => self::STATUS_COMPLETED]);
+        return $this->update([
+            'status' => self::STATUS_COMPLETED,
+            'ended_at' => now(),
+        ]);
     }
 
     public function cancel(): bool
@@ -215,12 +221,46 @@ class VideoMeeting extends Model
     }
 
     /**
-     * Проверка, может ли пользователь присоединиться
+     * Проверка, может ли пользователь присоединиться.
+     * Только приглашённые участники или создатель.
+     * Встреча должна быть scheduled или started.
      */
     public function canJoin(User $user): bool
     {
-        return $this->created_by === $user->id ||
-               $this->participants()->where('user_id', $user->id)->exists();
+        // Встреча уже завершена или отменена
+        if (in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED])) {
+            return false;
+        }
+
+        // Создатель всегда может зайти
+        if ($this->created_by === $user->id) {
+            return true;
+        }
+
+        // Только приглашённые участники (invited, accepted, joined)
+        $isParticipant = $this->participants()
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['invited', 'accepted', 'joined'])
+            ->exists();
+
+        if (!$isParticipant) {
+            return false;
+        }
+
+        // Проверка лимита участников
+        if ($this->max_participants) {
+            $activeCount = $this->participants()->where('status', 'joined')->count();
+            $alreadyJoined = $this->participants()
+                ->where('user_id', $user->id)
+                ->where('status', 'joined')
+                ->exists();
+
+            if (!$alreadyJoined && $activeCount >= $this->max_participants) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

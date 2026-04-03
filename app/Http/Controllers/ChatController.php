@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Chat\MessageSent;
 use App\Models\Application;
 use App\Models\ChatMessage;
 use App\Models\ChatRoom;
@@ -72,6 +73,11 @@ class ChatController extends Controller
         // Обновляем время последнего сообщения
         $chatRoom->update(['last_message_at' => now()]);
 
+        $message->load('sender');
+
+        // Broadcast to WebSocket
+        broadcast(MessageSent::fromMessage($message))->toOthers();
+
         return response()->json([
             'success' => true,
             'message' => [
@@ -86,7 +92,7 @@ class ChatController extends Controller
     }
 
     /**
-     * Получить новые сообщения (polling)
+     * Получить новые сообщения (polling fallback)
      */
     public function getMessages(Request $request, Application $application): JsonResponse
     {

@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @auth <meta name="user-id" content="{{ auth()->id() }}"> @endauth
 
     <title>@yield('title', 'Панель управления') - {{ config('app.name') }}</title>
 
@@ -65,6 +66,13 @@
         @include('layouts.admin-sidebar')
 
         <div id="layoutSidenav_content">
+            {{-- Top notification bar --}}
+            <div style="display:flex; justify-content:flex-end; align-items:center; padding:10px 24px 0; position:relative;">
+                @auth
+                    @include('components.notification-bell')
+                @endauth
+            </div>
+
             <main>
                 <!-- Page Header -->
                 @hasSection('header')
