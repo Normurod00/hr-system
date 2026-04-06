@@ -24,16 +24,19 @@ MODEL_TIERS = {
     "cheap": {
         "anthropic": "claude-haiku-4-5-20251001",
         "openai": "gpt-4o-mini",
+        "gemini": "gemini-2.0-flash",
         "max_tokens": 2048,
     },
     "medium": {
         "anthropic": "claude-sonnet-4-6",
         "openai": "gpt-4o",
+        "gemini": "gemini-2.0-flash",
         "max_tokens": 4096,
     },
     "strong": {
         "anthropic": "claude-opus-4-6",
         "openai": "gpt-4o",
+        "gemini": "gemini-2.5-pro-preview-06-05",
         "max_tokens": 8192,
     },
 }
@@ -44,6 +47,8 @@ MODEL_COSTS_PER_1M = {
     "claude-opus-4-6": {"input": 15.0, "output": 75.0},
     "gpt-4o-mini": {"input": 0.15, "output": 0.6},
     "gpt-4o": {"input": 5.0, "output": 15.0},
+    "gemini-2.0-flash": {"input": 0.0, "output": 0.0},  # free tier
+    "gemini-2.5-pro-preview-06-05": {"input": 1.25, "output": 10.0},
 }
 
 
@@ -151,15 +156,16 @@ def extract_json(text: str) -> Optional[dict]:
 class LLMEngine:
     """
     Production LLM Engine.
-    Supports Anthropic Claude and OpenAI GPT with structured JSON output.
+    Supports Anthropic Claude, OpenAI GPT, Google Gemini with structured JSON output.
     """
 
     def __init__(self, config: dict):
         llm_config = config.get("llm", config)
 
-        self.provider = llm_config.get("provider", "anthropic")
+        self.provider = llm_config.get("provider", "gemini")
         self.anthropic_key = llm_config.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY", "")
         self.openai_key = llm_config.get("openai_api_key") or os.getenv("OPENAI_API_KEY", "")
+        self.gemini_key = llm_config.get("gemini_api_key") or os.getenv("GEMINI_API_KEY", "")
         self.default_tier = llm_config.get("default_tier", "medium")
         self.timeout = llm_config.get("timeout", 60)
         self.max_retries = llm_config.get("max_retries", 2)
@@ -178,6 +184,8 @@ class LLMEngine:
             return bool(self.anthropic_key)
         if self.provider == "openai":
             return bool(self.openai_key)
+        if self.provider == "gemini":
+            return bool(self.gemini_key)
         return False
 
     def _resolve_model(self, tier: str) -> str:
@@ -230,6 +238,8 @@ class LLMEngine:
                     result = await self._call_anthropic(model, system_prompt, user_prompt, max_tokens, temperature)
                 elif self.provider == "openai":
                     result = await self._call_openai(model, system_prompt, user_prompt, max_tokens, temperature)
+                elif self.provider == "gemini":
+                    result = await self._call_gemini(model, system_prompt, user_prompt, max_tokens, temperature)
                 else:
                     return LLMResponse(success=False, error=f"Unknown provider: {self.provider}")
 
@@ -339,4 +349,36 @@ class LLMEngine:
                 "text": data["choices"][0]["message"]["content"],
                 "input_tokens": usage.get("prompt_tokens", 0),
                 "output_tokens": usage.get("completion_tokens", 0),
+            }
+
+    async def _call_gemini(self, model, system, user, max_tokens, temperature) -> dict:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.gemini_key}"
+
+        # Gemini использует system_instruction отдельно
+        payload = {
+            "system_instruction": {
+                "parts": [{"text": system}]
+            },
+            "contents": [
+                {"role": "user", "parts": [{"text": user}]}
+            ],
+            "generationConfig": {
+                "temperature": temperature,
+                "maxOutputTokens": max_tokens,
+                "responseMimeType": "application/json",
+            },
+        }
+
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            resp = await client.post(url, json=payload)
+            resp.raise_for_status()
+            data = resp.json()
+
+            text = data["candidates"][0]["content"]["parts"][0]["text"]
+            usage_meta = data.get("usageMetadata", {})
+
+            return {
+                "text": text,
+                "input_tokens": usage_meta.get("promptTokenCount", 0),
+                "output_tokens": usage_meta.get("candidatesTokenCount", 0),
             }

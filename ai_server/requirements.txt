@@ -30,3 +30,5 @@ slowapi>=0.1.9
 
 # Monitoring
 psutil>=5.9.0
+
+google-genai>=1.0.0

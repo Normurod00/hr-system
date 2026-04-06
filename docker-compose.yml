@@ -60,6 +60,7 @@ services:
       - ./ai_server/config.yaml:/app/config.yaml
     environment:
       PYTHONUNBUFFERED: "1"
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8095/health')"]
       interval: 30s

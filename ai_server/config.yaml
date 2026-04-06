@@ -20,14 +20,15 @@ server:
 # LLM Configuration (Hybrid AI)
 llm:
   # Feature flag: true = use LLM, false = rule-based only
-  enabled: false  # Включить после настройки API ключа
+  enabled: true
 
-  # Провайдер: anthropic, openai
-  provider: "anthropic"
+  # Провайдер: gemini, anthropic, openai
+  provider: "gemini"
 
-  # API ключи (лучше через ENV)
-  anthropic_api_key: ""  # или ANTHROPIC_API_KEY env
-  openai_api_key: ""     # или OPENAI_API_KEY env
+  # API ключи (через ENV)
+  gemini_api_key: ""     # GEMINI_API_KEY env
+  anthropic_api_key: ""  # ANTHROPIC_API_KEY env
+  openai_api_key: ""     # OPENAI_API_KEY env
 
   # Уровень модели по умолчанию: cheap, medium, strong
   default_tier: "medium"
