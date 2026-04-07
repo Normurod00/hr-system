@@ -26,6 +26,12 @@ class AuthController extends Controller
         ]);
 
         if (!Auth::attempt($request->only('email', 'password'))) {
+            Log::warning('API login failed', [
+                'email' => $request->input('email'),
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Неверный email или пароль.',
@@ -114,10 +120,10 @@ class AuthController extends Controller
      */
     protected function generateApiToken(User $user): string
     {
-        $token = Str::random(64);
+        $token = bin2hex(random_bytes(32));
 
         $user->api_token = hash('sha256', $token);
-        $user->api_token_expires_at = now()->addDays(7);
+        $user->api_token_expires_at = now()->addDay();
         $user->save();
 
         return $token;

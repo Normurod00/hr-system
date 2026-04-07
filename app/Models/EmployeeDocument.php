@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,9 +34,12 @@ class EmployeeDocument extends Model
             'size' => 'integer',
             'analysis_result' => 'array',
             'processed_at' => 'datetime',
+            'status' => DocumentStatus::class,
+            'document_type' => DocumentType::class,
         ];
     }
 
+    // Legacy constants — use DocumentStatus and DocumentType enums instead
     const STATUS_PENDING = 'pending';
     const STATUS_PROCESSING = 'processing';
     const STATUS_PARSED = 'parsed';
@@ -63,17 +68,17 @@ class EmployeeDocument extends Model
 
     public function scopePending($query)
     {
-        return $query->where('status', self::STATUS_PENDING);
+        return $query->where('status', DocumentStatus::Pending);
     }
 
     public function scopeParsed($query)
     {
-        return $query->where('status', self::STATUS_PARSED);
+        return $query->where('status', DocumentStatus::Parsed);
     }
 
     public function scopeFailed($query)
     {
-        return $query->where('status', self::STATUS_FAILED);
+        return $query->where('status', DocumentStatus::Failed);
     }
 
     public function scopeOfType($query, string $type)
@@ -90,50 +95,22 @@ class EmployeeDocument extends Model
 
     public function getDocumentTypeLabelAttribute(): string
     {
-        return match ($this->document_type) {
-            'contract' => 'Трудовой договор',
-            'diploma' => 'Диплом',
-            'certificate' => 'Сертификат',
-            'id_document' => 'Удостоверение личности',
-            'medical' => 'Медицинская справка',
-            'other' => 'Другой документ',
-            default => 'Документ',
-        };
+        return $this->document_type?->label() ?? 'Документ';
     }
 
     public function getDocumentTypeIconAttribute(): string
     {
-        return match ($this->document_type) {
-            'contract' => 'bi-file-earmark-text',
-            'diploma' => 'bi-mortarboard',
-            'certificate' => 'bi-patch-check',
-            'id_document' => 'bi-person-badge',
-            'medical' => 'bi-heart-pulse',
-            'other' => 'bi-file-earmark',
-            default => 'bi-file-earmark',
-        };
+        return $this->document_type?->icon() ?? 'bi-file-earmark';
     }
 
     public function getStatusLabelAttribute(): string
     {
-        return match ($this->status) {
-            'pending' => 'Ожидает',
-            'processing' => 'Обработка',
-            'parsed' => 'Обработан',
-            'failed' => 'Ошибка',
-            default => $this->status,
-        };
+        return $this->status?->label() ?? 'Неизвестно';
     }
 
     public function getStatusColorAttribute(): string
     {
-        return match ($this->status) {
-            'pending' => 'warning',
-            'processing' => 'info',
-            'parsed' => 'success',
-            'failed' => 'danger',
-            default => 'secondary',
-        };
+        return $this->status?->color() ?? 'secondary';
     }
 
     public function getExtensionAttribute(): string
@@ -151,7 +128,7 @@ class EmployeeDocument extends Model
 
     public function getIsParsedAttribute(): bool
     {
-        return $this->status === self::STATUS_PARSED;
+        return $this->status === DocumentStatus::Parsed;
     }
 
     public function getHasAnalysisAttribute(): bool
@@ -163,14 +140,14 @@ class EmployeeDocument extends Model
 
     public function markAsProcessing(): bool
     {
-        return $this->update(['status' => self::STATUS_PROCESSING]);
+        return $this->update(['status' => DocumentStatus::Processing]);
     }
 
     public function markAsParsed(string $text, ?array $analysisResult = null): bool
     {
         return $this->update([
             'parsed_text' => $text,
-            'status' => self::STATUS_PARSED,
+            'status' => DocumentStatus::Parsed,
             'analysis_result' => $analysisResult,
             'processed_at' => now(),
             'error_message' => null,
@@ -180,7 +157,7 @@ class EmployeeDocument extends Model
     public function markAsFailed(string $error): bool
     {
         return $this->update([
-            'status' => self::STATUS_FAILED,
+            'status' => DocumentStatus::Failed,
             'error_message' => $error,
             'processed_at' => now(),
         ]);

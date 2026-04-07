@@ -10,9 +10,11 @@ use App\Models\ApplicationFile;
 use App\Models\CandidateResume;
 use App\Models\Vacancy;
 use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\StoreApplicationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use App\Services\FileValidationService;
 
 class ApplicationController extends Controller
 {
@@ -42,7 +44,7 @@ class ApplicationController extends Controller
     /**
      * Сохранение заявки
      */
-    public function store(Request $request, Vacancy $vacancy): RedirectResponse
+    public function store(StoreApplicationRequest $request, Vacancy $vacancy): RedirectResponse
     {
         // Проверяем, что вакансия активна
         if (!$vacancy->is_active) {
@@ -61,54 +63,6 @@ class ApplicationController extends Controller
 
         $resumeType = $request->input('resume_type', 'upload');
 
-        // Валидация в зависимости от типа
-        if ($resumeType === 'upload') {
-            $request->validate([
-                'cover_letter' => ['nullable', 'string', 'max:5000'],
-                'resume' => ['required', 'file', 'mimes:pdf,doc,docx,txt,rtf', 'max:10240'],
-            ], [
-                'resume.required' => 'Прикрепите резюме',
-                'resume.mimes' => 'Резюме должно быть в формате PDF, DOC, DOCX, TXT или RTF',
-                'resume.max' => 'Размер файла не должен превышать 10 МБ',
-                'cover_letter.max' => 'Сопроводительное письмо не должно превышать 5000 символов',
-            ]);
-        } else {
-            $request->validate([
-                'full_name' => ['required', 'string', 'max:255'],
-                'birth_date' => ['required', 'date'],
-                'phone' => ['required', 'string', 'max:50'],
-                'email' => ['required', 'email', 'max:255'],
-                'city' => ['required', 'string', 'max:255'],
-                'citizenship' => ['nullable', 'string', 'max:255'],
-                'desired_position' => ['nullable', 'string', 'max:255'],
-                'desired_salary' => ['nullable', 'string', 'max:100'],
-                'education' => ['nullable', 'array'],
-                'education.*.level' => ['nullable', 'string'],
-                'education.*.year' => ['nullable', 'integer', 'min:1970', 'max:2030'],
-                'education.*.institution' => ['nullable', 'string', 'max:500'],
-                'education.*.speciality' => ['nullable', 'string', 'max:500'],
-                'experience' => ['nullable', 'array'],
-                'experience.*.company' => ['nullable', 'string', 'max:255'],
-                'experience.*.position' => ['nullable', 'string', 'max:255'],
-                'experience.*.start_date' => ['nullable', 'string'],
-                'experience.*.end_date' => ['nullable', 'string'],
-                'experience.*.current' => ['nullable'],
-                'experience.*.description' => ['nullable', 'string', 'max:2000'],
-                'skills' => ['nullable', 'string', 'max:1000'],
-                'languages' => ['nullable', 'array'],
-                'languages.*.name' => ['nullable', 'string', 'max:100'],
-                'languages.*.level' => ['nullable', 'string', 'max:50'],
-                'about' => ['nullable', 'string', 'max:3000'],
-                'cover_letter' => ['nullable', 'string', 'max:5000'],
-            ], [
-                'full_name.required' => 'Укажите ваше ФИО',
-                'birth_date.required' => 'Укажите дату рождения',
-                'phone.required' => 'Укажите номер телефона',
-                'email.required' => 'Укажите email',
-                'city.required' => 'Укажите город проживания',
-            ]);
-        }
-
         // Создаём заявку
         $application = Application::create([
             'user_id' => auth()->id(),
@@ -122,13 +76,19 @@ class ApplicationController extends Controller
             // Загружаем резюме файлом
             if ($request->hasFile('resume')) {
                 $file = $request->file('resume');
+
+                // Validate file content matches MIME type
+                if (!FileValidationService::validateFileContent($file->getRealPath(), $file->getMimeType())) {
+                    return back()->withErrors(['resume' => 'Содержимое файла не соответствует его формату.']);
+                }
+
                 $path = $file->store('resumes/' . date('Y/m'), 'public');
 
                 $applicationFile = ApplicationFile::create([
                     'application_id' => $application->id,
                     'file_type' => FileType::Resume,
                     'path' => $path,
-                    'original_name' => $file->getClientOriginalName(),
+                    'original_name' => FileValidationService::sanitizeFilename($file->getClientOriginalName()),
                     'mime_type' => $file->getMimeType(),
                     'size' => $file->getSize(),
                     'is_parsed' => false,

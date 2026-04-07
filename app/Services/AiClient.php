@@ -68,7 +68,7 @@ class AiClient
      */
     protected function getCacheKey(string $operation, string $content): string
     {
-        return 'ai:' . $operation . ':' . md5($content);
+        return 'ai:' . $operation . ':' . hash('sha256', $content);
     }
 
     /**

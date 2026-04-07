@@ -29,7 +29,9 @@ return new class extends Migration
 
             $table->index(['category', 'is_active']);
             $table->index('effective_date');
-            $table->fullText(['title', 'content']); // для поиска (MySQL/PostgreSQL)
+            if (config('database.default') !== 'sqlite') {
+                $table->fullText(['title', 'content']); // для поиска (MySQL/PostgreSQL)
+            }
         });
     }
 

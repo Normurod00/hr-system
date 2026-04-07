@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\DocumentStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreEmployeeDocumentRequest;
 use App\Jobs\ProcessEmployeeDocument;
 use App\Models\EmployeeDocument;
 use App\Models\EmployeeProfile;
@@ -10,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use App\Services\FileValidationService;
 
 class EmployeeDocumentController extends Controller
 {
@@ -35,12 +38,18 @@ class EmployeeDocumentController extends Controller
 
         $documents = $query->paginate(20)->withQueryString();
 
-        // KPI stats
-        $total = EmployeeDocument::count();
-        $parsed = EmployeeDocument::where('status', 'parsed')->count();
-        $pending = EmployeeDocument::where('status', 'pending')->count();
-        $processing = EmployeeDocument::where('status', 'processing')->count();
-        $failed = EmployeeDocument::where('status', 'failed')->count();
+        // KPI stats — single grouped query instead of 5 separate queries
+        $statusCounts = EmployeeDocument::query()
+            ->selectRaw("status, COUNT(*) as count")
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $total = array_sum($statusCounts);
+        $parsed = $statusCounts[DocumentStatus::Parsed->value] ?? 0;
+        $pending = $statusCounts[DocumentStatus::Pending->value] ?? 0;
+        $processing = $statusCounts[DocumentStatus::Processing->value] ?? 0;
+        $failed = $statusCounts[DocumentStatus::Failed->value] ?? 0;
 
         $kpi = [
             'total' => $total,
@@ -74,19 +83,20 @@ class EmployeeDocumentController extends Controller
     /**
      * Загрузка документа сотрудника (от admin)
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreEmployeeDocumentRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'employee_profile_id' => ['required', 'exists:employee_profiles,id'],
-            'document_type' => ['required', 'in:contract,diploma,certificate,id_document,medical,other'],
-            'file' => ['required', 'file', 'max:10240'], // 10 MB
-        ]);
+        $validated = $request->validated();
 
         $file = $request->file('file');
         $extension = strtolower($file->getClientOriginalExtension());
 
         if (!in_array($extension, EmployeeDocument::getAllowedExtensions())) {
             return back()->with('error', 'Неподдерживаемый формат файла.');
+        }
+
+        // Validate file content matches MIME type
+        if (!FileValidationService::validateFileContent($file->getRealPath(), $file->getMimeType())) {
+            return back()->with('error', 'Содержимое файла не соответствует его формату.');
         }
 
         $path = $file->store('public/employee-documents');
@@ -96,10 +106,10 @@ class EmployeeDocumentController extends Controller
             'uploaded_by' => auth()->id(),
             'document_type' => $validated['document_type'],
             'path' => $path,
-            'original_name' => $file->getClientOriginalName(),
+            'original_name' => FileValidationService::sanitizeFilename($file->getClientOriginalName()),
             'mime_type' => $file->getMimeType(),
             'size' => $file->getSize(),
-            'status' => EmployeeDocument::STATUS_PENDING,
+            'status' => DocumentStatus::Pending,
         ]);
 
         return back()->with('success', 'Документ загружен и отправлен на обработку.');
@@ -121,7 +131,7 @@ class EmployeeDocumentController extends Controller
     public function reprocess(EmployeeDocument $document): RedirectResponse
     {
         $document->update([
-            'status' => EmployeeDocument::STATUS_PENDING,
+            'status' => DocumentStatus::Pending,
             'error_message' => null,
             'analysis_result' => null,
             'parsed_text' => null,

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Enums\ApplicationStatus;
+use App\Http\Requests\BulkUpdateStatusRequest;
+use App\Http\Requests\UpdateApplicationStatusRequest;
 use App\Jobs\AnalyzeApplication;
 use App\Models\Application;
 use App\Services\MatchingService;
@@ -80,18 +82,10 @@ class ApplicationController extends Controller
     /**
      * Изменение статуса заявки
      */
-    public function updateStatus(Request $request, Application $application): RedirectResponse
+    public function updateStatus(UpdateApplicationStatusRequest $request, Application $application): RedirectResponse
     {
-        $validated = $request->validate([
-            'status' => ['required', 'string'],
-            'notes' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        $status = ApplicationStatus::tryFrom($validated['status']);
-
-        if (!$status) {
-            return back()->with('error', 'Неверный статус.');
-        }
+        $validated = $request->validated();
+        $status = ApplicationStatus::from($validated['status']);
 
         $application->update([
             'status' => $status,
@@ -129,19 +123,10 @@ class ApplicationController extends Controller
     /**
      * Массовое изменение статуса
      */
-    public function bulkUpdateStatus(Request $request): RedirectResponse
+    public function bulkUpdateStatus(BulkUpdateStatusRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'application_ids' => ['required', 'array'],
-            'application_ids.*' => ['integer', 'exists:applications,id'],
-            'status' => ['required', 'string'],
-        ]);
-
-        $status = ApplicationStatus::tryFrom($validated['status']);
-
-        if (!$status) {
-            return back()->with('error', 'Неверный статус.');
-        }
+        $validated = $request->validated();
+        $status = ApplicationStatus::from($validated['status']);
 
         $applications = Application::whereIn('id', $validated['application_ids'])->get();
 
