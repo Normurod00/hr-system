@@ -138,6 +138,35 @@ class ApplicationController extends Controller
     }
 
     /**
+     * Сравнение кандидатов side-by-side
+     */
+    public function compare(Request $request): View|RedirectResponse
+    {
+        $ids = $request->input('ids', []);
+
+        if (!is_array($ids) || count($ids) < 2 || count($ids) > 4) {
+            return redirect()->route('admin.applications.index')
+                ->with('error', 'Выберите от 2 до 4 кандидатов для сравнения.');
+        }
+
+        $applications = Application::whereIn('id', $ids)
+            ->with([
+                'candidate.candidateProfile',
+                'vacancy',
+                'analysis',
+                'candidateTest',
+            ])
+            ->get();
+
+        if ($applications->count() < 2) {
+            return redirect()->route('admin.applications.index')
+                ->with('error', 'Недостаточно кандидатов для сравнения.');
+        }
+
+        return view('admin.applications.compare', compact('applications'));
+    }
+
+    /**
      * Удаление заявки кандидата
      */
     public function destroy(Application $application): RedirectResponse

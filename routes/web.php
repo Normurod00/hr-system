@@ -203,6 +203,7 @@ Route::middleware(['admin', '2fa'])->prefix('admin')->name('admin.')->group(func
 
         // Applications
         Route::get('/applications', [AdminApplicationController::class, 'index'])->name('applications.index');
+        Route::get('/applications/compare', [AdminApplicationController::class, 'compare'])->name('applications.compare');
         Route::get('/applications/{application}', [AdminApplicationController::class, 'show'])->name('applications.show');
         Route::post('/applications/{application}/status', [AdminApplicationController::class, 'updateStatus'])->name('applications.status');
         Route::post('/applications/{application}/reanalyze', [AdminApplicationController::class, 'reanalyze'])->name('applications.reanalyze');

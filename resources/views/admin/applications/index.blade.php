@@ -470,6 +470,7 @@
         <table class="table applications-table">
             <thead>
                 <tr>
+                    <th width="40" class="text-center" style="padding-left: 12px; padding-right: 4px;"></th>
                     <th>Кандидат</th>
                     <th>Вакансия</th>
                     <th>Статус</th>
@@ -483,6 +484,9 @@
             <tbody>
                 @forelse($applications as $application)
                     <tr>
+                        <td class="text-center" style="padding-left: 12px; padding-right: 4px;">
+                            <input type="checkbox" class="compare-check" value="{{ $application->id }}" style="width: 16px; height: 16px; cursor: pointer; accent-color: #d6001c;">
+                        </td>
                         <td>
                             <div class="candidate-cell">
                                 <img src="{{ $application->candidate->avatar_url }}"
@@ -565,7 +569,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8">
+                        <td colspan="9">
                             <div class="empty-state">
                                 <i class="bi bi-inbox"></i>
                                 <p>Заявки не найдены</p>
@@ -583,4 +587,55 @@
         {{ $applications->links() }}
     </div>
 @endif
+<!-- Compare floating button -->
+<div id="compare-bar" style="display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 2px solid var(--accent); border-radius: 14px; padding: 12px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 1000; align-items: center; gap: 16px;">
+    <span style="font-size: 14px; font-weight: 700; color: var(--fg-1);"><i class="bi bi-arrow-left-right me-2"></i>Выбрано: <span id="compare-count">0</span></span>
+    <a id="compare-btn" href="#" class="btn btn-sm" style="background: var(--accent); color: white; font-weight: 700; border-radius: 8px; padding: 8px 20px; text-decoration: none;">
+        Сравнить
+    </a>
+    <button onclick="clearCompare()" class="btn btn-sm" style="background: var(--grid); color: var(--fg-2); font-weight: 600; border-radius: 8px; padding: 8px 14px; border: 1px solid var(--br);">
+        <i class="bi bi-x-lg"></i>
+    </button>
+</div>
+
+<script>
+function updateCompareBar() {
+    const checked = document.querySelectorAll('.compare-check:checked');
+    const bar = document.getElementById('compare-bar');
+    const count = document.getElementById('compare-count');
+    const btn = document.getElementById('compare-btn');
+
+    count.textContent = checked.length;
+
+    if (checked.length >= 2) {
+        bar.style.display = 'flex';
+        const ids = Array.from(checked).map(c => 'ids[]=' + c.value).join('&');
+        btn.href = '{{ route("admin.applications.compare") }}?' + ids;
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+    } else if (checked.length === 1) {
+        bar.style.display = 'flex';
+        btn.style.opacity = '0.5';
+        btn.style.pointerEvents = 'none';
+    } else {
+        bar.style.display = 'none';
+    }
+
+    // Max 4
+    if (checked.length >= 4) {
+        document.querySelectorAll('.compare-check:not(:checked)').forEach(c => c.disabled = true);
+    } else {
+        document.querySelectorAll('.compare-check').forEach(c => c.disabled = false);
+    }
+}
+
+function clearCompare() {
+    document.querySelectorAll('.compare-check').forEach(c => { c.checked = false; c.disabled = false; });
+    document.getElementById('compare-bar').style.display = 'none';
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('compare-check')) updateCompareBar();
+});
+</script>
 @endsection

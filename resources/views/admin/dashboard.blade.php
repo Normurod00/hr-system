@@ -795,6 +795,11 @@
         color: var(--fg-3);
         font-size: 13px;
     }
+
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
 </style>
 @endpush
 
@@ -809,6 +814,22 @@
         <a href="{{ route('admin.vacancies.create') }}" class="btn btn-primary">
             <i class="fa-solid fa-plus"></i> Новая вакансия
         </a>
+    </div>
+</div>
+
+<!-- AI Health Status -->
+<div id="ai-health-bar" style="background: var(--panel); border: 1px solid var(--br); border-radius: 12px; padding: 12px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div id="ai-health-dot" style="width: 10px; height: 10px; border-radius: 50%; background: var(--fg-3); animation: pulse-dot 2s infinite;"></div>
+        <span style="font-size: 13px; font-weight: 600; color: var(--fg-2);">
+            <i class="bi bi-cpu me-1"></i>AI Engine
+        </span>
+        <span id="ai-health-status" style="font-size: 13px; font-weight: 700; color: var(--fg-3);">Проверка...</span>
+    </div>
+    <div id="ai-health-meta" style="display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--fg-3);">
+        <span id="ai-health-latency"></span>
+        <span id="ai-health-ops">AI операций за 24ч: {{ $aiStats['total'] ?? 0 }}</span>
+        <span id="ai-health-errors" style="{{ ($aiStats['errors'] ?? 0) > 0 ? 'color: var(--error);' : '' }}">Ошибок: {{ $aiStats['errors'] ?? 0 }}</span>
     </div>
 </div>
 
@@ -1393,5 +1414,35 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target === modal) closeAiModal();
     });
 });
+
+// AI Health Check
+fetch('/api/ai/health')
+    .then(r => r.json())
+    .then(data => {
+        const dot = document.getElementById('ai-health-dot');
+        const status = document.getElementById('ai-health-status');
+        const latency = document.getElementById('ai-health-latency');
+        if (data.status === 'online' || data.healthy === true) {
+            dot.style.background = '#16a34a';
+            dot.style.boxShadow = '0 0 8px rgba(22,163,74,0.4)';
+            status.textContent = 'Online';
+            status.style.color = '#16a34a';
+            if (data.latency_ms || data.data?.latency_ms) {
+                latency.textContent = 'Latency: ' + (data.latency_ms || data.data?.latency_ms || '—') + 'ms';
+            }
+        } else {
+            dot.style.background = '#ef4444';
+            dot.style.boxShadow = '0 0 8px rgba(239,68,68,0.4)';
+            status.textContent = 'Offline';
+            status.style.color = '#ef4444';
+        }
+    })
+    .catch(() => {
+        const dot = document.getElementById('ai-health-dot');
+        const status = document.getElementById('ai-health-status');
+        dot.style.background = '#f59e0b';
+        status.textContent = 'Недоступен';
+        status.style.color = '#f59e0b';
+    });
 </script>
 @endpush
